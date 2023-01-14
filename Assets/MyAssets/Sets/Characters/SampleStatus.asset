@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd13d103e26ee2046b09e78c178f2213, type: 3}
+  m_Name: SampleStatus
+  m_EditorClassIdentifier: 
+  Basic:
+    level: 50
+    maxHp: 2000
+    maxSp: 40
+    atk: 200
+    def_percent: 20
+    speed: 100
+    exp: 5000
+  Growth:
+    maxHp: 20
+    maxSp: 2
+    atk: 10
+    def_percent: 0
+    speed: 100
+    exp: 10
+  Float:
+    maxHp: 2880
+    maxSp: 41.615997
+    atk: 242
+    def_percent: 20
+    speed: 400
+    exp: 6050
+  Current:
+    level: 52
+    maxHp: 2880
+    hp: 2880
+    maxSp: 41
+    sp: 26
+    atk: 242
+    def_percent: 20
+    speed: 400
+    exp: 6050
+  Perception:
+    vision: 1
+    aural: 0
+    magic: 0
