@@ -45,13 +45,14 @@ namespace UnityChan
 			} else if (!isKeepFace) {
 				current = Mathf.Lerp (current, 0, delayWeight);
 			}
-			anim.SetLayerWeight (1, current);
+			//anim.SetLayerWeight (1, current);
 		}
 	 
 
 		//アニメーションEvents側につける表情切り替え用イベントコール
 		public void OnCallChangeFace (string str)
 		{   
+			/*
 			int ichecked = 0;
 			foreach (var animation in animations) {
 				if (str == animation.name) {
@@ -65,6 +66,7 @@ namespace UnityChan
 					ChangeFace (str);
 				}
 			} 
+			*/
 		}
 
 		void ChangeFace (string str)
