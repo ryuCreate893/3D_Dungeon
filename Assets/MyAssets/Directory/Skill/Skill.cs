@@ -4,8 +4,6 @@ using UnityEngine;
 
 abstract class Skill : MonoBehaviour
 {
-    // *** 各スキルの"空スクリプト"にスキルを実装、空の "GameObject" にアタッチして
-    // *** そのオブジェクトを各キャラのスキルリストに取り付けて使用します。
     // *** このスクリプトは継承用のため、アタッチしないでください。
 
     /// <summary>
@@ -13,19 +11,18 @@ abstract class Skill : MonoBehaviour
     /// </summary>
     public void UserSet(GameObject character)
     {
-        userTransform = character.GetComponent<Transform>();
-        userMethod = character.GetComponent<Character>();
-        userStatus = character.GetComponent<CurrentStatus>();
-        Debug.Log(gameObject.name + "が" + character.name + "のステータスを取得しました！");
+        user = character.GetComponent<Character>();
+        userStatus = user._current;
+        Debug.Log(character.name + "のステータス・メソッドを取得！");
     }
 
     /// <summary>
     /// スキルの内容を実装します。
     /// </summary>
-    public abstract void SkillContent();
+    protected abstract void SkillContent();
 
     /// <summary>
-    /// スキルが発動できるかどうかをチェックします。
+    /// 条件を満たす場合はスキルを発動します。
     /// </summary>
     public abstract void TrySkill();
 
@@ -35,14 +32,9 @@ abstract class Skill : MonoBehaviour
     public abstract void CancelSkill();
 
     /// <summary>
-    /// スキルを所持しているキャラクター本体の座標用変数です。
+    /// スキルを所持しているキャラクターの変数です。
     /// </summary>
-    protected Transform userTransform;
-
-    /// <summary>
-    /// スキルを所持しているキャラクターのメソッド用変数です。
-    /// </summary>
-    protected Character userMethod;
+    protected Character user;
 
     /// <summary>
     /// スキルを所持しているキャラクターのステータスを取得します。

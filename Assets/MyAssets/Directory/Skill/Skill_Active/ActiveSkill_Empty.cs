@@ -5,7 +5,7 @@ using UnityEngine;
 class ActiveSkill_Empty : ActiveSkill
 {
     // *** スキルの内容を実装して、空オブジェクトに取りつけます。 ***
-    public override void SkillContent()
+    protected override void SkillContent()
     {
 
     }

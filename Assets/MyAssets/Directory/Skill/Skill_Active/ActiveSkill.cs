@@ -4,47 +4,116 @@ using UnityEngine;
 
 abstract class ActiveSkill : Skill
 {
-    public override void TrySkill()
+    // *** このスクリプトは継承用のため、アタッチしないでください。
+
+    [Tooltip("消費スキルポイント量です。")]
+    private int useSp;
+
+    [SerializeField, Tooltip("スキルの発動に掛かる時間です。'0'でも機能させます。")]
+    private float chargeTime;
+
+    [SerializeField, Tooltip("スキルの発動後に掛かる硬直時間です。モーション込みのため'0'では機能させません。")]
+    private float freezeTime;
+
+    [SerializeField, Tooltip("スキルを発動する確率(%)です。\nプレイヤーの場合は基本的に'100'を設定します。")]
+    [Range(1, 100)]
+    private int probability = 1;
+
+    [SerializeField, Tooltip("攻撃を受けた場合にスキルチャージをキャンセルするかどうかを設定します。")]
+    private bool damagedCancel;
+
+    [SerializeField, Tooltip("攻撃の射程です。'0'の場合は自分に使用するスキルです。")]
+    private float range;
+
+    [SerializeField, Tooltip("数値を'0'よりも高くすると「魔法攻撃」判定となります。\n数字が大きいほど魔法感知ができる敵に気がつかれやすくなります。")]
+    protected float magicColliderSize = 0;
+
+    [SerializeField, Tooltip("スキルを使うことができるタイミングを設定します。")]
+    private SkillType skillType;
+
+
+    /// <summary>
+    /// チャージ中かどうかを判定します。
+    /// </summary>
+    private bool charging = false;
+
+    /// <summary>
+    /// チャージ中かどうかを判定します。
+    /// </summary>
+    private Transform target;
+
+    /// <summary>
+    /// 発動条件を満たしたらスキルをチャージします。
+    /// チャージ時間がない場合は即発動を試みます。
+    /// </summary>
+    public virtual int ChargeSkill(int number)
     {
-        if (charging)
+        int rnd = Random.Range(1, 101);
+        if (probability >= rnd)
         {
-            charging = false;
-            if (userStatus.Sp < useSp)
+            if (chargeTime == 0)
             {
-                Debug.Log("何らかの原因でSpが足りなくなりました。");
+                TrySkill();
             }
-            else
+            else if (UseJudge())
             {
-                userStatus.Sp -= useSp;
-                SkillContent();
-                Debug.Log(gameObject.name + "を発動しました！");
+                charging = true;
+                user.ActionTimeSet(chargeTime);
+                Debug.Log("スキル:" + gameObject.name + "をチャージ！");
+                return number;
             }
         }
-        else if (UseJudge())
+        return -1;
+    }
+
+    public override void TrySkill()
+    {
+        if (UseJudge())
         {
-            if (chargeTime != 0)
+            userStatus.Sp -= useSp;
+            charging = false;
+            user.ActionTimeSet(freezeTime);
+            SkillContent();
+            Debug.Log("スキル:" + gameObject.name + "を発動！");
+        }
+        else
+        {
+            CancelSkill();
+        }
+    }
+
+    private bool UseJudge()
+    {
+        if (useSp <= userStatus.Sp)
+        {
+            if (range == 0)
             {
-                userMethod.ActionTimeSet(chargeTime);
-                charging = true;
-                Debug.Log(gameObject.name + "のチャージを開始します！");
+                return true;
             }
             else
             {
-                SkillContent();
-                userMethod.ActionTimeSet(freezeTime);
-                charging = false;
-                Debug.Log(gameObject.name + "を''即時''発動しました！");
+                if (user.CheckTargetDistence(range))
+                {
+                    return true;
+                }
             }
+        }
+        return false;
+    }
+
+    public void DamagedCancel()
+    {
+        if (charging && damagedCancel)
+        {
+            CancelSkill();
         }
     }
 
     public override void CancelSkill()
     {
-        if (charging && damagedCancel)
-        {
-            charging = false;
-            userMethod.ActionTimeSet(0);
-        }
+        charging = false;
+        user.ActionTimeSet(0);
+        Debug.Log("スキルがキャンセルされた…。");
     }
 
     public float GetRange()
@@ -52,53 +121,15 @@ abstract class ActiveSkill : Skill
         return range;
     }
 
-    /// <summary>
-    /// SP状態, 発動確率の２つの条件からスキルの発動を判定します。
-    /// </summary>
-    /// <returns></returns>
-    protected bool UseJudge()
+    public SkillType SkillTypeCheck()
     {
-        if (userStatus.Sp >= useSp)
-        {
-            int rnd = Random.Range(1, 101);
-            return probability >= rnd;
-        }
-        else
-        {
-            return false;
-        }
+        return skillType;
     }
+}
 
-    [Tooltip("消費スキルポイント量です。")]
-    [SerializeField]
-    protected int useSp;
-
-    [Tooltip("攻撃の射程です。")]
-    [SerializeField]
-    protected float range;
-
-    [Tooltip("数値を'0'よりも高くすると「魔法攻撃」判定となります。\n数字が大きいほど魔法感知ができる敵に気がつかれやすくなります。")]
-    [SerializeField]
-    protected float magic;
-
-    [Tooltip("スキルの発動に掛かる時間です。'0'でも機能させます。")]
-    [SerializeField]
-    protected float chargeTime;
-
-    [Tooltip("スキルの発動後に掛かる硬直時間です。モーション込みのため'0'では機能させません。")]
-    [SerializeField]
-    protected float freezeTime;
-
-    [Tooltip("スキルを発動する確率(%)です。\nプレイヤーの場合は基本的に'100'を設定します。")]
-    [SerializeField]
-    [Range(1, 100)]
-    protected int probability;
-
-    [Tooltip("攻撃を受けた場合にスキルチャージをキャンセルするかどうかを設定します。")]
-    [SerializeField]
-    protected bool damagedCancel;
-
-
-    [Tooltip("チャージ中かどうかを判定します。")]
-    protected bool charging = false;
+public enum SkillType
+{
+    ordinary,
+    battle,
+    always
 }

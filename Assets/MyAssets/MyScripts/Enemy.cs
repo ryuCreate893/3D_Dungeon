@@ -4,171 +4,234 @@ using UnityEngine;
 
 class Enemy : Character
 {
-    private Transform player_transform; // プレイヤー位置情報
+    [SerializeField, Tooltip("敵がプレイヤーを見失う距離")]
+    private float loseSightDistance;
+
+    [SerializeField, Tooltip("敵がプレイヤーを見失う判定を呼び出す時間")]
+    private float maxTrackingTime;
+
+    [SerializeField, Tooltip("敵がプレイヤー攻撃し始める距離")]
+    private float attackDistance;
+
+    /// <summary>
+    /// 敵が次の行動に移るまでの時間
+    /// </summary>
+    //private float stopTime = 2.5f;
+
+    /// <summary>
+    /// 敵がプレイヤーを知覚しているかどうかを判定(true=気づいている)
+    /// </summary>
+    private bool found = false;
+
+    /// <summary>
+    /// 敵がプレイヤーの追跡を続ける時間
+    /// </summary>
+    private float trackingTime = 0;
+
 
     private void Update()
     {
-        if (!TimeCheck()) _actionTime -= Time.deltaTime;
-
-
+        // プレイヤーを知覚している場合
         if (found)
         {
             trackingTime -= Time.deltaTime;
-            FoundCheck();
-        }
-        else if (TimeCheck())
-        {
-            Rooteen();
-        }
-    }
-
-    /// <summary>
-    /// プレイヤーを見失うかどうか判定し、見失った場合は行動を変更します。
-    /// </summary>
-    private void FoundCheck()
-    {
-        if (trackingTime <= 0)
-        {
-            distance = DistanceCheck();
-            if (distance > loseSightDistance)
-            {
-                found = false;
-            }
-            else
-            {
-                trackingTime = maxTrackingTime;
-            }
+            if (TimeCheck(trackingTime)) LoseSightCheck();
         }
 
-        if (found)
+        if (!TimeCheck(_actionTime))
         {
-            // 十分に距離を詰めていない場合はプレイヤーに向かって移動し続け、
-            // 距離が十分な場合はスキルによる攻撃を開始します。
+            _actionTime -= Time.deltaTime;
         }
         else
         {
-            Search();
-            // "?"を出す？
-            Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
+            if (found)
+            {
+                ChangeFoundRooteen();
+            }
+            else
+            {
+                ChangeRooteen();
+            }
         }
     }
 
     /// <summary>
-    /// 未発見時の行動をします。
+    /// trackingTimeが0になったとき、プレイヤーを見失うかどうか判定します。
     /// </summary>
-    protected virtual void Rooteen()
+    private void LoseSightCheck()
     {
-        int rnd = Random.Range(1, 5);
-        switch (rnd)
+        if (CheckTargetDistence(loseSightDistance))
         {
-            case 1:
-                Move();
-                break;
-            case 2:
-                Turn();
-                break;
-            case 3:
-                Search();
-                break;
-            case 4:
-                UseSkill();
-                break;
+            trackingTime = maxTrackingTime;
         }
-    }
-
-    /// <summary>
-    /// 発見時の行動をします。
-    /// </summary>
-    protected virtual void FoundRooteen()
-    {
-        for (int i = 0; i < activeSkill.Count; i++)
+        else
         {
-            activeSkill[i].TrySkill();
-            if (!TimeCheck()) break;
+            LoseSightEnemy();
+        }
+    }
+
+    protected override void LoseSightEnemy()
+    {
+        found = false;
+        _targetTransform = null;
+        _targetMethod = null;
+        Search();
+        Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
+    }
+
+    /// <summary>
+    /// プレイヤー知覚時の行動をします。
+    /// </summary>
+    protected virtual void ChangeFoundRooteen()
+    {
+        Vector3 v3 = FocusTarget();
+        v3 = new Vector3(v3.x, 0, v3.z).normalized;
+        SetCharacterAngle(v3);
+
+        if (CheckTargetDistence(attackDistance))
+        {
+            _velocity = Vector3.zero;
+            if (_chargeSkillnumber != -1) // スキルをチャージしている場合
+            {
+                _activeSkill[_chargeSkillnumber].TrySkill();
+                _chargeSkillnumber = -1;
+            }
+            else // スキルをチャージしていない場合
+            {
+                for (int i = 0; i < _activeSkill.Count; i++)
+                {
+                    if (_activeSkill[i].SkillTypeCheck() != SkillType.ordinary)
+                    {
+                        // ★確率を実装したい★
+                        _chargeSkillnumber = _activeSkill[i].ChargeSkill(i);
+                        // スキルが選択された場合はfor文から抜ける
+                        if (!TimeCheck(_actionTime)) break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            _velocity = v3 * _current.Speed;
+            _chargeSkillnumber = -1;
         }
     }
 
     /// <summary>
-    /// プレイヤーとの距離を返します。
+    /// プレイヤー未発見時の行動をします。
     /// </summary>
-    protected float DistanceCheck()
+    protected virtual void ChangeRooteen()
     {
-        return (transform.position - player_transform.position).magnitude;
+        if (_chargeSkillnumber != -1)
+        {
+            _activeSkill[_chargeSkillnumber].TrySkill();
+            _chargeSkillnumber = -1;
+        }
+        else
+        {
+            int rnd = Random.Range(1, 5);
+            switch (rnd)
+            {
+                case 1: // 移動
+                    Move();
+                    break;
+                case 2: // 回転
+                    Turn();
+                    break;
+                case 3: // 見回す
+                    Search();
+                    break;
+                case 4: // スキル
+                    UseSkill();
+                    break;
+            }
+        }
+    }
+
+    protected override void SetCharacterAngle(Vector3 v3look)
+    {
+        // 現在の向きからv3lookへの回転を取得(Enemy専用)
+        Quaternion _horizontalRotation = Quaternion.FromToRotation(transform.forward, v3look);
+
+        // キャラクターの方向ベクトルを作成
+        Vector3 v3 = _horizontalRotation * transform.forward;
+
+        // y軸を軸としたキャラクターの回転を取得
+        _characterRotation = Quaternion.LookRotation(v3, Vector3.up);
+
+        // 現在の向きから移動後の向きまで回転させる
+        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, 1200 * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// 真っ直ぐ進みます。
+    /// </summary>
+    protected virtual void Move()
+    {
+        _velocity = transform.forward * _current.Speed;
+        _actionTime = 1;
+    }
+
+    /// <summary>
+    /// 向きを変えます。
+    /// </summary>
+    protected virtual void Turn()
+    {
+        float x = Random.Range(-1f, 1f);
+        float z = Random.Range(-1f, 1f);
+        SetCharacterAngle(new Vector3(x, 0, z).normalized);
+        _actionTime = 2;
+    }
+
+    /// <summary>
+    /// 周りを見渡してプレイヤーを探します。
+    /// </summary>
+    protected virtual void Search()
+    {
+        _velocity = Vector3.zero;
+        _actionTime = 2;
+    }
+
+    /// <summary>
+    /// 持っているスキルを使用します。
+    /// </summary>
+    protected virtual void UseSkill()
+    {
+        _velocity = Vector3.zero;
+        for (int i = 0; i < _activeSkill.Count; i++)
+        {
+            if (_activeSkill[i].SkillTypeCheck() != SkillType.battle)
+            {
+                _chargeSkillnumber = _activeSkill[i].ChargeSkill(i);
+            }
+            if (!TimeCheck(_actionTime)) break;
+        }
     }
 
     /// <summary>
     /// 視覚・聴覚・魔法感知・本体接触で敵がプレイヤーを知覚したときに呼び出されます。
     /// </summary>
     /// <param name="player"></param>
-    public void Founded(Transform player)
+    public override void FoundEnemy(GameObject target)
     {
-        player_transform = player;
+        _targetTransform = target.GetComponent<Transform>();
         found = true;
         _actionTime = 0; // 即座に見つけたときの行動ルーチンに移る
         trackingTime = maxTrackingTime;
         Debug.Log(gameObject.name + "がプレイヤーを発見しました！！");
     }
 
-    protected virtual void Move() 
-    {
-        transform.position += Vector3.left; // 後で作り変え
-    }
-
-    protected virtual void Turn()
-    {
-        transform.rotation = transform.rotation * Quaternion.AngleAxis(0.1f, Vector3.up);
-    }
-
-    protected virtual void Search()
-    {
-        _actionTime = stopTime;
-    }
-    protected virtual void UseSkill()
-    {
-        
-    }
-
-
-    public override void FoundEnemy() { }
-    public override void LoseSightEnemy() { }
     public override void Beat() { }
     protected override void DeathCharacter() { }
 
-    private void OnColliderEnter(Collision other)
+    private void OnCollisionEnter(Collision other)
     {
         // プレイヤーの身体と敵の身体が接触したときは敵がプレイヤーを知覚します。
         if (other.gameObject.CompareTag("Player_Body") && !found)
         {
-            Transform player = other.gameObject.GetComponent<Transform>();
-            Founded(player);
+            FoundEnemy(other.gameObject);
         }
     }
 
-    [Tooltip("プレイヤーを見失うまでの時間を設定します。")]
-    [SerializeField]
-    private float maxTrackingTime;
 
-    [Tooltip("プレイヤーを見失う距離を設定します。")]
-    [SerializeField]
-    private float loseSightDistance;
-
-    [Tooltip("プレイヤー攻撃する距離を'自動で'設定します。")]
-    [SerializeField]
-    private float AttackDistance;
-
-    [Tooltip("プレイヤーを知覚している状態かどうかを判定します。(true=気づいている)")]
-    [SerializeField]
-    private bool found = false;
-
-    [Tooltip("敵はtrackingTimeが残っている間、プレイヤーを狙い続けます。")]
-    [SerializeField]
-    private float trackingTime = 0;
-
-    [Tooltip("一時的に停止してから次の行動に移るまでの時間です。")]
-    [SerializeField]
-    private float stopTime = 2.0f;
-
-    [Tooltip("敵とプレイヤーの距離です。")]
-    [SerializeField]
-    private float distance;
 }

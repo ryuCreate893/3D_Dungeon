@@ -44,10 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bf5b0a082512e74790cf31e30b2f1db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useSp: 15
-  range: 0
-  magic: 0
-  chargeTime: 0
-  freezeTime: 0
-  probability: 1
+  chargeTime: 2
+  freezeTime: 2
+  probability: 100
   damagedCancel: 0
+  range: 3
+  magicColliderSize: 0
+  skillType: 1
