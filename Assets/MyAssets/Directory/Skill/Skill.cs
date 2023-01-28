@@ -2,42 +2,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// *** このスクリプトは継承用のため、アタッチしないでください。
 abstract class Skill : MonoBehaviour
 {
-    // *** このスクリプトは継承用のため、アタッチしないでください。
+    /// <summary>
+    /// スキルを所持しているキャラクターのメソッド
+    /// </summary>
+    protected Character userMethod;
+    /// <summary>
+    /// スキルを所持しているキャラクターのステータス
+    /// </summary>
+    protected CurrentStatus userStatus;
+    /// <summary>
+    /// キャラクターの持つスキル番号
+    /// </summary>
+    protected int skill_number;
 
     /// <summary>
     /// スキル使用者のステータス情報を取得します。
     /// </summary>
-    public void UserSet(GameObject character)
+    public virtual void UserSet(GameObject character, int i)
     {
-        user = character.GetComponent<Character>();
-        userStatus = user._current;
-        Debug.Log(character.name + "のステータス・メソッドを取得！");
+        userMethod = character.GetComponent<Character>();
+        userStatus = userMethod._current;
+        skill_number = i;
+        Debug.Log(character.name + "は" + gameObject.name + "を覚えた！");
     }
 
     /// <summary>
-    /// スキルの内容を実装します。
+    /// スキルを発動します。(スキルの内容はこの中ですべて実装)
     /// </summary>
-    protected abstract void SkillContent();
-
-    /// <summary>
-    /// 条件を満たす場合はスキルを発動します。
-    /// </summary>
-    public abstract void TrySkill();
-
-    /// <summary>
-    /// スキルを解除します。
-    /// </summary>
-    public abstract void CancelSkill();
-
-    /// <summary>
-    /// スキルを所持しているキャラクターの変数です。
-    /// </summary>
-    protected Character user;
-
-    /// <summary>
-    /// スキルを所持しているキャラクターのステータスを取得します。
-    /// </summary>
-    protected CurrentStatus userStatus;
+    public abstract void SkillContent();
 }

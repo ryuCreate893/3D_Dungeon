@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4114369069879865213}
-  - component: {fileID: 7959057643688799310}
+  - component: {fileID: -5241583169654622238}
   m_Layer: 0
   m_Name: ActiveSkill_test
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7959057643688799310
+--- !u!114 &-5241583169654622238
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,13 +41,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 4975856626683599050}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bf5b0a082512e74790cf31e30b2f1db, type: 3}
+  m_Script: {fileID: 11500000, guid: c57b244cc5d765f4cbb3899a27253847, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 2
-  freezeTime: 2
-  probability: 100
-  damagedCancel: 0
-  range: 3
-  magicColliderSize: 0
+  useSp: 5
+  range: 2
   skillType: 1
+  freezeTime: 3
+  chargeSkill:
+    chargeTime: 3
+    damagedCancel: 1

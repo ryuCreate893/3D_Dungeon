@@ -5,45 +5,64 @@ using UnityEngine;
 class Player : Character
 {
     // *** 判定 ***
-    [SerializeField, Tooltip("地面に立っているかどうかを判定します。")]
+    /// <summary>
+    /// 地面に立っているか
+    /// </summary>
     private bool isGround = false;
-
-    [SerializeField, Tooltip("走り, 歩き(しゃがみ)の切り替えを判定します。")]
+    /// <summary>
+    /// 走って移動(false) / ゆっくり移動(true)の切り替え
+    /// </summary>
     private bool isSlow = false;
-
-    [SerializeField, Tooltip("ダッシュ中かどうかを判定します。")]
+    /// <summary>
+    /// ダッシュ中かどうか
+    /// </summary>
     private bool isDash = false;
-
-    [SerializeField, Tooltip("ダッシュ後の硬直中かどうかを判定します。")]
+    /// <summary>
+    /// ダッシュの硬直中かどうか
+    /// </summary>
     private bool isDashed = false;
 
-
-    // *** 能力 ***
-    [SerializeField, Tooltip("プレイヤーのジャンプ力です。")]
+    // *** アクション能力 ***
+    /// <summary>
+    /// プレイヤーのジャンプ力(初期5.0f)
+    /// </summary>
     private float _height = 5.0f;
-
-    [SerializeField, Tooltip("プレイヤーのダッシュ時の加速倍率です。")]
-    private float dashSpeed = 1.4f;
-
-    [SerializeField, Tooltip("プレイヤーが1回のダッシュに掛ける時間です。")]
-    private float dashTime = 0.4f;
-
-    [SerializeField, Tooltip("プレイヤーの合計ジャンプ回数です。")]
+    /// <summary>
+    /// プレイヤーのダッシュ加速倍率(初期2.0f)
+    /// </summary>
+    private float dashSpeed = 2.0f;
+    /// <summary>
+    /// ダッシュ時間(初期0.5f)
+    /// </summary>
+    private float dashTime = 0.5f;
+    /// <summary>
+    /// 合計移動アクション回数(地上 + 空中で動ける回数)
+    /// </summary>
     private int maxActionCount = 1;
-
-    [SerializeField, Tooltip("プレイヤーの残りジャンプ可能回数です。")]
-    private int actionCount;
-
+    /// <summary>
+    /// 残り移動アクション回数
+    /// </summary>
+    private int actionCount = 1;
 
     // *** 硬直時間 ***
-    [SerializeField, Tooltip("連続してジャンプできる間隔です。")]
+    /// <summary>
+    /// ジャンプ硬直
+    /// </summary>
     private float jump_Freeze = 0.2f;
-
-    [SerializeField, Tooltip("ダッシュ後の硬直時間です。")]
+    /// <summary>
+    /// ダッシュ硬直
+    /// </summary>
     private float dash_Freeze = 0.2f;
 
-    private float _horizontal; // 横移動
-    private float _vertical; // 奥移動
+    // *** 移動方向入力用変数 ***
+    /// <summary>
+    /// 横移動
+    /// </summary>
+    private float _horizontal;
+    /// <summary>
+    /// 奥行き移動
+    /// </summary>
+    private float _vertical;
 
     private void Update()
     {

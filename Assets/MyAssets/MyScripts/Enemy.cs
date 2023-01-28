@@ -88,29 +88,29 @@ class Enemy : Character
         v3 = new Vector3(v3.x, 0, v3.z).normalized;
         SetCharacterAngle(v3);
 
-        if (CheckTargetDistence(attackDistance))
+        // スキルをチャージしている場合
+        if (_chargeSkillnumber != -1)
+        {
+            _activeSkill[_chargeSkillnumber].TrySkill();
+            _chargeSkillnumber = -1;
+        }
+
+        // スキルをチャージしていない場合
+        else if (CheckTargetDistence(attackDistance)) // 射程内
         {
             _velocity = Vector3.zero;
-            if (_chargeSkillnumber != -1) // スキルをチャージしている場合
+            for (int i = 0; i < _activeSkill.Count; i++)
             {
-                _activeSkill[_chargeSkillnumber].TrySkill();
-                _chargeSkillnumber = -1;
-            }
-            else // スキルをチャージしていない場合
-            {
-                for (int i = 0; i < _activeSkill.Count; i++)
+                if (_activeSkill[i].SkillTypeCheck() != SkillType.ordinary)
                 {
-                    if (_activeSkill[i].SkillTypeCheck() != SkillType.ordinary)
-                    {
-                        // ★確率を実装したい★
-                        _chargeSkillnumber = _activeSkill[i].ChargeSkill(i);
-                        // スキルが選択された場合はfor文から抜ける
-                        if (!TimeCheck(_actionTime)) break;
-                    }
+                    // ★確率を実装したい★
+                    _chargeSkillnumber = _activeSkill[i].TrySkill();
+                    // スキルが選択された場合はfor文から抜ける
+                    if (!TimeCheck(_actionTime)) break;
                 }
             }
         }
-        else
+        else // 射程外
         {
             _velocity = v3 * _current.Speed;
             _chargeSkillnumber = -1;
@@ -151,13 +151,16 @@ class Enemy : Character
     protected override void SetCharacterAngle(Vector3 v3look)
     {
         // 現在の向きからv3lookへの回転を取得(Enemy専用)
-        Quaternion _horizontalRotation = Quaternion.FromToRotation(transform.forward, v3look);
+        Quaternion _horizontalRotation = Quaternion.FromToRotation(_transform.forward, v3look);
 
         // キャラクターの方向ベクトルを作成
-        Vector3 v3 = _horizontalRotation * transform.forward;
+        Vector3 v3 = _horizontalRotation * _transform.forward;
 
-        // y軸を軸としたキャラクターの回転を取得
-        _characterRotation = Quaternion.LookRotation(v3, Vector3.up);
+        if(v3.magnitude > 0.5f)
+        {
+            // y軸を軸としたキャラクターの回転を取得
+            _characterRotation = Quaternion.LookRotation(v3, Vector3.up);
+        }
 
         // 現在の向きから移動後の向きまで回転させる
         _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, 1200 * Time.deltaTime);
@@ -168,7 +171,7 @@ class Enemy : Character
     /// </summary>
     protected virtual void Move()
     {
-        _velocity = transform.forward * _current.Speed;
+        _velocity = _transform.forward * _current.Speed;
         _actionTime = 1;
     }
 
@@ -202,7 +205,7 @@ class Enemy : Character
         {
             if (_activeSkill[i].SkillTypeCheck() != SkillType.battle)
             {
-                _chargeSkillnumber = _activeSkill[i].ChargeSkill(i);
+                _chargeSkillnumber = _activeSkill[i].TrySkill();
             }
             if (!TimeCheck(_actionTime)) break;
         }

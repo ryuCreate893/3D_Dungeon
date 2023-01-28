@@ -195,17 +195,6 @@ MonoBehaviour:
     exp: 0
   _activeSkill: []
   _passiveSkill: []
-  isGround: 0
-  isSlow: 0
-  isDash: 0
-  isDashed: 0
-  _height: 5
-  dashSpeed: 2.2
-  dashTime: 0.4
-  maxActionCount: 1
-  actionCount: 0
-  jump_Freeze: 0.2
-  dash_Freeze: 0.2
 --- !u!1001 &644353939
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -611,7 +600,7 @@ MonoBehaviour:
     speed: 0
     exp: 0
   _activeSkill:
-  - {fileID: 7959057643688799310, guid: bc8e427bfb9a45a4cafe723e3ee641e6, type: 3}
+  - {fileID: -5241583169654622238, guid: bc8e427bfb9a45a4cafe723e3ee641e6, type: 3}
   _passiveSkill: []
   loseSightDistance: 5
   maxTrackingTime: 3
@@ -630,7 +619,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 116
+  m_Constraints: 84
   m_CollisionDetection: 0
 --- !u!136 &1033731537
 CapsuleCollider:

@@ -18,55 +18,59 @@ abstract class Character : MonoBehaviour
     [SerializeField, Tooltip("常時発動している固有能力です。\n優先度などで並べる必要はありません。")]
     protected List<PassiveSkill> _passiveSkill;
 
-
     // *** 内部設定 ***
-    protected Transform _targetTransform;
-    protected Character _targetMethod;
-
-    /// <summary>
-    /// スキルチャージ、発動、ダッシュなど、アクションに掛かる時間
-    /// </summary>
-    protected float _actionTime;
-
-    /// <summary>
-    /// 全スキルの中での最長射程距離
-    /// </summary>
-    protected float _maxSkillRange = 0;
-
-    /// <summary>
-    /// キャラクターの移動速度を保有(_rigidbodyに加えて移動させる)
-    /// </summary>
-    protected Vector3 _velocity;
-
     /// <summary>
     /// キャラクターの位置・向きを保有
     /// </summary>
     protected Transform _transform;
-
     /// <summary>
     /// キャラクターの速度・物理演算を保有
     /// </summary>
     protected Rigidbody _rigidbody;
-
     /// <summary>
     /// キャラクターのアニメーションを保有
     /// </summary>
     protected Animator _animator;
-
+    /// <summary>
+    /// キャラクターの移動速度・方向(_rigidbodyに加えて移動させる)
+    /// </summary>
+    protected Vector3 _velocity;
+    /// <summary>
+    /// キャラクターの回転方向
+    /// </summary>
+    protected Quaternion _characterRotation;
     /// <summary>
     /// 現在チャージしているスキルの番号
     /// </summary>
     protected int _chargeSkillnumber = -1;
+    /// <summary>
+    /// 標的の座標
+    /// </summary>
+    protected Transform _targetTransform;
+    /// <summary>
+    /// 標的のメソッド
+    /// </summary>
+    protected Character _targetMethod;
+    /// <summary>
+    /// 標的との距離
+    /// </summary>
+    protected float _targetDistance;
+    /// <summary>
+    /// アクション一つひとつに掛かる時間
+    /// </summary>
+    protected float _actionTime;
+    /// <summary>
+    /// キャラクターが保有するスキルの最長射程距離
+    /// </summary>
+    protected float _maxSkillRange = 0;
 
-    protected float _targetDistance; // 標的との距離を数値で保有
-    protected Quaternion _characterRotation;
 
     private void Awake()
     {
-        _rigidbody = GetComponent<Rigidbody>();
         _transform = GetComponent<Transform>();
+        _rigidbody = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
-        _characterRotation = transform.rotation;
+        _characterRotation = _transform.rotation;
         SpawnCharacter(2); // テスト用(本来は外部から呼び出す)
     }
 
@@ -90,26 +94,24 @@ abstract class Character : MonoBehaviour
         _float.Def = _status.Basic.Def;
         _float.Speed = _status.Basic.Speed;
         _current.Level = _status.Basic.Level + n;
+
         if (n > 0)
         {
-            for (int i = 0; i < n; i++)
-            {
-                LevelUp();
-            }
+            LevelUp(n);
         }
         else if (n < 0)
         {
-            for (int i = 0; i < -n; i++)
-            {
-                LevelDown();
-            }
+            LevelDown(n);
         }
-        SetCurrentStatus();
+        else
+        {
+            SetCurrentStatus();
+        }
 
         // アクティブスキルをキャラクターに覚えさせます。
         for (int i = 0; i < _activeSkill.Count; i++)
         {
-            _activeSkill[i].UserSet(gameObject);
+            _activeSkill[i].UserSet(gameObject, i);
             if (_maxSkillRange < _activeSkill[i].GetRange())
             {
                 _maxSkillRange = _activeSkill[i].GetRange(); // 最長射程のスキルを登録
@@ -119,8 +121,8 @@ abstract class Character : MonoBehaviour
         // パッシブスキルをキャラクターに覚えさせて、発動させます。
         for (int i = 0; i < _passiveSkill.Count; i++)
         {
-            _passiveSkill[i].UserSet(gameObject);
-            _passiveSkill[i].TrySkill();
+            _passiveSkill[i].UserSet(gameObject, i);
+            _passiveSkill[i].SkillContent();
         }
 
         Debug.Log("キャラクターセット完了！ キャラクター名 : " + gameObject.name);
@@ -129,25 +131,33 @@ abstract class Character : MonoBehaviour
     /// <summary>
     /// レベルが上昇したときの処理を行います。
     /// </summary>
-    private void LevelUp()
+    private void LevelUp(int n)
     {
-        _float.MaxHp *= _grow.MaxHp;
-        _float.MaxSp *= _grow.MaxSp;
-        _float.Atk *= _grow.Atk;
-        _float.Def *= _grow.Def_percent;
-        _float.Speed *= _grow.Speed;
+        for (int i = 0; i < n; i++)
+        {
+            _float.MaxHp *= _grow.MaxHp;
+            _float.MaxSp *= _grow.MaxSp;
+            _float.Atk *= _grow.Atk;
+            _float.Def *= _grow.Def_percent;
+            _float.Speed *= _grow.Speed;
+        }
+        SetCurrentStatus();
     }
 
     /// <summary>
     /// レベルが下落したときの処理を行います。
     /// </summary>
-    private void LevelDown()
+    private void LevelDown(int n)
     {
-        _float.MaxHp /= _grow.MaxHp;
-        _float.MaxSp /= _grow.MaxSp;
-        _float.Atk /= _grow.Atk;
-        _float.Def /= _grow.Def_percent;
-        _float.Speed /= _grow.Speed;
+        for (int i = 0; i < n; i++)
+        {
+            _float.MaxHp /= _grow.MaxHp;
+            _float.MaxSp /= _grow.MaxSp;
+            _float.Atk /= _grow.Atk;
+            _float.Def /= _grow.Def_percent;
+            _float.Speed /= _grow.Speed;
+        }
+        SetCurrentStatus();
     }
 
     /// <summary>
@@ -165,6 +175,17 @@ abstract class Character : MonoBehaviour
         _current.Exp = _status.Basic.Exp;
     }
 
+    public void GetActiveSkill(GameObject skill)
+    {
+        _activeSkill.Add(skill.GetComponent<ActiveSkill>());
+    }
+
+    public void GetPassiveSkill(GameObject skill)
+    {
+        _passiveSkill.Add(skill.GetComponent<PassiveSkill>());
+    }
+
+    // *** バトル関連 メソッド ******************
     /// <summary>
     /// ダメージ計算
     /// </summary>
@@ -181,8 +202,7 @@ abstract class Character : MonoBehaviour
         }
         else
         {
-            int per = 100 - _current.Def;
-            damage = enemy_attack * per / 100;
+            damage = enemy_attack * (100 - _current.Def) / 100;
         }
 
         if (damage > 0) Damaged(damage);
@@ -205,8 +225,7 @@ abstract class Character : MonoBehaviour
         }
         else
         {
-            int per = 100 - weaked;
-            damage = enemy_attack * per / 100;
+            damage = enemy_attack * (100 - weaked) / 100;
         }
 
         if (damage > 0) Damaged(damage);
@@ -236,8 +255,13 @@ abstract class Character : MonoBehaviour
     /// </summary>
     abstract protected void DeathCharacter();
 
+    /// <summary>
+    /// 敵を倒したときの処理
+    /// </summary>
+    abstract public void Beat();
 
-    // *** アクション・バトル関連 メソッド ******************
+
+    // *** アクション関連 メソッド ******************
     /// <summary>
     /// 外部からアクション時間をセットし、アクション時間が残っている間は行動を制限させます。
     /// </summary>
@@ -264,21 +288,8 @@ abstract class Character : MonoBehaviour
     /// </summary>
     abstract protected void LoseSightEnemy();
 
-    /// <summary>
-    /// 敵を倒したときの処理
-    /// </summary>
-    abstract public void Beat();
 
-    public void GetActiveSkill(GameObject skill)
-    {
-        _activeSkill.Add(skill.GetComponent<ActiveSkill>());
-    }
-
-    public void GetPassiveSkill(GameObject skill)
-    {
-        _passiveSkill.Add(skill.GetComponent<PassiveSkill>());
-    }
-
+    // *** 位置関係取得 メソッド ******************
     /// <summary>
     /// 自身→標的の単位ベクトルを返します。標的がいない場合は零ベクトルを返します。
     /// </summary>
@@ -297,7 +308,6 @@ abstract class Character : MonoBehaviour
         }
     }
 
-    // *** 方向の決定 ***
     /// <summary>
     /// 向かせたい方向を引数に指定し、その方向に回転させます。
     /// </summary>
