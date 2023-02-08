@@ -238,6 +238,15 @@ MonoBehaviour:
     def: 0
     speed: 0
     exp: 0
+  activeSkill: []
+  moveSkill:
+  - skill: {fileID: 5445062764013466311, guid: 7a6ee42f6412d524c90e186aa4416a2f, type: 3}
+    key: Jump
+    isGetAxis: 1
+  - skill: {fileID: -6329671975143669771, guid: c689d96988efc9f43948c3ebb9c03a09, type: 3}
+    key: Dash
+    isGetAxis: 0
+  passiveSkill: []
 --- !u!1 &321699459
 GameObject:
   m_ObjectHideFlags: 0
@@ -950,13 +959,13 @@ MonoBehaviour:
     def: 0
     speed: 0
     exp: 0
-  attackDistance: 0
-  loseSightDistance: 3
-  maxTrackingTime: 2
-  moveProbability: 90
   activeSkill: []
   moveSkill: []
   passiveSkill: []
+  moveProbability: 90
+  attackDistance: 0
+  loseSightDistance: 3
+  maxTrackingTime: 2
 --- !u!136 &1166701853
 CapsuleCollider:
   m_ObjectHideFlags: 0
