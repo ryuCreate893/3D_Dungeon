@@ -6,14 +6,15 @@ abstract class SamplePassive : PassiveSkill
 {
     public override void SkillContent()
     {
-        userFloat.Atk *= 1.5f;
-        userStatus.Atk = (int)userFloat.Atk;
+        userStatus.AddAtk += (int)(userStatus.FloatAtk * 1.5f);
+        userStatus.Atk += userStatus.AddAtk;
     }
 
     public override void Relieve()
     {
-     userFloat.Atk /= 1.5f;
-     userStatus.Atk = (int) userFloat.Atk;
+        int n = userStatus.AddAtk;
+        userStatus.Atk -= n;
+        userStatus.AddAtk -= n;
     }
 
     protected override void OnDisable()

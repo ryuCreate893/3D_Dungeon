@@ -12,15 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd13d103e26ee2046b09e78c178f2213, type: 3}
   m_Name: SampleDragon
   m_EditorClassIdentifier: 
-  Basic:
-    level: 50
-    maxHp: 2000
-    maxSp: 1000
-    atk: 500
-    def: 0
-    speed: 1
-    exp: 5000
-  Perception:
-    vision: 1
-    aural: 0
-    magic: 0
+  level: 50
+  maxHp: 2000
+  maxSp: 1000
+  atk: 100
+  def: 20
+  speed: 1
+  exp: 5000
+  vision: 0
+  aural: 0
+  magic: 0

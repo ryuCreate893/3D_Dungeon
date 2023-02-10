@@ -215,20 +215,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 101ed1673bd5acf49ab24835eea0162f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _status: {fileID: 11400000, guid: 5433f60036f823e4a9523a83d0c8a3ed, type: 2}
-  _grow:
-    maxHp: 5
-    maxSp: 5
-    atk: 5
-    def: 0
-    speed: 1
-  _float:
-    maxHp: 0
-    maxSp: 0
-    atk: 0
-    def: 0
-    speed: 0
-  _current:
+  _transform: {fileID: 220828875}
+  _rigidbody: {fileID: 220828847}
+  _animator: {fileID: 220828874}
+  _status:
+    Basic: {fileID: 11400000, guid: 2c2e7a4a8d126b14a90a4b1ef58e5db8, type: 2}
+    growMaxHp: 0
+    growMaxSp: 0
+    growAtk: 0
+    growDef: 0
+    growSpeed: 0
+    growExp: 0
     level: 0
     maxHp: 0
     hp: 0
@@ -240,13 +237,23 @@ MonoBehaviour:
     exp: 0
   activeSkill: []
   moveSkill:
-  - skill: {fileID: 5445062764013466311, guid: 7a6ee42f6412d524c90e186aa4416a2f, type: 3}
+  - skill: {fileID: 1109702625111171519, guid: 8e1d8e1fb7c2f5544848ff404be61ee5, type: 3}
     key: Jump
     isGetAxis: 1
-  - skill: {fileID: -6329671975143669771, guid: c689d96988efc9f43948c3ebb9c03a09, type: 3}
+  - skill: {fileID: 8159273810749472275, guid: f32cb1894dbbfcd4aa050aa4339042c4, type: 3}
     key: Dash
     isGetAxis: 0
   passiveSkill: []
+--- !u!95 &220828874 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9500000, guid: 13a16f60da4245c45a865b2136ba272c, type: 3}
+  m_PrefabInstance: {fileID: 644353939}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &220828875 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400264, guid: 13a16f60da4245c45a865b2136ba272c, type: 3}
+  m_PrefabInstance: {fileID: 644353939}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &321699459
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,48 +931,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f49f5ec090cb0214aac76fc2f8e185dd, type: 3}
   m_PrefabInstance: {fileID: 711478298}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1166701851
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1166701850}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fdb35ecd6f0d074dac6c4fcace30ce5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _status: {fileID: 11400000, guid: 80dc548100195fa4d9c68bee9d514c90, type: 2}
-  _grow:
-    maxHp: 1
-    maxSp: 1
-    atk: 1
-    def: 1
-    speed: 0
-  _float:
-    maxHp: 0
-    maxSp: 0
-    atk: 0
-    def: 0
-    speed: 0
-  _current:
-    level: 0
-    maxHp: 0
-    hp: 0
-    maxSp: 0
-    sp: 0
-    atk: 0
-    def: 0
-    speed: 0
-    exp: 0
-  activeSkill: []
-  moveSkill: []
-  passiveSkill: []
-  moveProbability: 90
-  attackDistance: 0
-  loseSightDistance: 3
-  maxTrackingTime: 2
 --- !u!136 &1166701853
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -996,3 +961,71 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!4 &1166701855 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f49f5ec090cb0214aac76fc2f8e185dd, type: 3}
+  m_PrefabInstance: {fileID: 711478298}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1166701856
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1166701850}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 66540738a18bac44aa2d4cf0ac25c991, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &1166701857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1166701850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdb35ecd6f0d074dac6c4fcace30ce5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _transform: {fileID: 1166701855}
+  _rigidbody: {fileID: 1166701854}
+  _animator: {fileID: 1166701856}
+  _status:
+    Basic: {fileID: 11400000, guid: 80dc548100195fa4d9c68bee9d514c90, type: 2}
+    growMaxHp: 0
+    growMaxSp: 0
+    growAtk: 0
+    growDef: 0
+    growSpeed: 0
+    growExp: 0
+    level: 0
+    maxHp: 0
+    hp: 0
+    maxSp: 0
+    sp: 0
+    atk: 0
+    def: 0
+    speed: 0
+    exp: 0
+  activeSkill: []
+  moveSkill:
+  - skill: {fileID: 5060784096327951658, guid: 76cd0365c8000cc45bcd0011cadef49d, type: 3}
+    type: 0
+    p_ordinary: 50
+    p_battle: 0
+  - skill: {fileID: 5074297349486195501, guid: 8cef7d0087b08a540a2a518929b02ceb, type: 3}
+    type: 0
+    p_ordinary: 50
+    p_battle: 0
+  passiveSkill: []

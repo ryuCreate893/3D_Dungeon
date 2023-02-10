@@ -4,76 +4,51 @@ using UnityEngine;
 
 abstract class Character : MonoBehaviour
 {
-    // *** 外部設定 ***
-    [Header("ステータス情報")]
-    [SerializeField, Tooltip("キャラクターの基礎ステータス・知覚情報を設定")]
-    private Status _status;
-    [SerializeField, Tooltip("キャラクターの成長度を設定")]
-    private GrowthValue _grow;
-    [SerializeField, Tooltip("キャラクターの内部ステータス(float)を設定")]
-    private FloatStatus _float;
-    [SerializeField, Tooltip("キャラクターの実際のステータス(int)を設定")]
-    public CurrentStatus _current;
-
-    // *** キャラクターのコンポーネントを保有する変数 ***
-    /// <summary>
-    /// キャラクターのTransformコンポーネントを保有
-    /// </summary>
+    // *** 自分自身のコンポーネントを保有する変数 ***
+    [SerializeField]
     protected Transform _transform;
-    /// <summary>
-    /// キャラクターのRigidbodyコンポーネントを保有
-    /// </summary>
+    [SerializeField]
     protected Rigidbody _rigidbody;
-    /// <summary>
-    /// キャラクターのAnimatorコンポーネントを保有
-    /// </summary>
+    [SerializeField]
     protected Animator _animator;
+
+    // *** 標的のコンポーネントを保有する変数 ***
+    protected Character _target;
+    protected Transform _targetTransform;
+    /// <summary>
+    /// 自分→標的の方向ベクトル
+    /// </summary>
+    public Vector3 _focus { get; set; }
 
     // *** キャラクターのコンポーネント以外の情報を保有する変数 ***
     /// <summary>
-    /// キャラクターの回転方向を保有
-    /// </summary>
-    protected Quaternion _characterRotation;
-    /// <summary>
     /// キャラクターの移動方向のベクトル
     /// </summary>
-    protected Vector3 _velocity;
+    public Vector3 _velocity { protected get; set; }
     /// <summary>
-    /// アクション一つひとつに掛かる時間(外部からメソッドで変更可能)
+    /// キャラクターの回転方向
     /// </summary>
-    protected float _actionTime;
+    public Quaternion _characterRotation { protected get; set; }
     /// <summary>
-    /// 保有するスキルの最長射程(外部からメソッドで変更可能)
+    /// アクション一つひとつに掛かる時間
     /// </summary>
-    protected float _maxSkillRange = 0;
+    public float _actionTime { protected get; set; }
     /// <summary>
-    /// 現在チャージしているスキルの番号(外部からメソッドで変更可能)
+    /// 現在チャージしているスキルの番号
     /// </summary>
-    protected int _chargeSkill = -1;
+    public int _chargeSkill { protected get; set; } = -1;
 
+    [SerializeField, Tooltip("ステータス情報")]
+    protected CharacterStatus _status;
+    public CharacterStatus _Status { get { return _status; } }
 
-    // *** 標的のコンポーネントを保有する変数 ***
-    /// <summary>
-    /// 標的のメソッド
-    /// </summary>
-    protected Character _target;
-    /// <summary>
-    /// 標的の座標
-    /// </summary>
-    protected Transform _targetTransform;
-    /// <summary>
-    /// 本体→標的の方向ベクトル
-    /// </summary>
-    protected Vector3 _focus;
 
     protected virtual void Awake()
     {
-        _transform = GetComponent<Transform>();
-        _rigidbody = GetComponent<Rigidbody>();
-        _animator = GetComponent<Animator>();
         _characterRotation = _transform.rotation;
         SpawnCharacter(2); // テスト用(本来は外部から呼び出す)
     }
+
 
     private void FixedUpdate()
     {
@@ -81,96 +56,16 @@ abstract class Character : MonoBehaviour
         _rigidbody.velocity = _velocity;
     }
 
-    // *** ステータス関連 メソッド ******************
     /// <summary>
-    /// キャラクターをスポーンさせます。 "n"の分だけレベルを上下させることができます。
+    /// キャラクターをスポーンさせます。 "n"の分だけレベルを上下させます。
     /// </summary>
     /// <param name="n"></param>
     public void SpawnCharacter(int n)
     {
-        // スポーン時の初期ステータスを設定します。
-        _float.MaxHp = _status.Basic.MaxHp;
-        _float.MaxSp = _status.Basic.MaxSp;
-        _float.Atk = _status.Basic.Atk;
-        _float.Def = _status.Basic.Def;
-        _float.Speed = _status.Basic.Speed;
-        _current.Level = _status.Basic.Level;
-
-        if (n > 0)
-        {
-            LevelUp(n);
-        }
-        else if (n < 0)
-        {
-            LevelDown(n);
-        }
-        else
-        {
-            SetCurrentStatus();
-        }
-
+        _status.SpawnStatus(n);
         SetActiveSkill();
         SetPassiveSkill();
         Debug.Log("キャラクターセット完了！ キャラクター名 : " + gameObject.name);
-    }
-
-    /// <summary>
-    /// レベルが上昇したときの処理を行います。
-    /// </summary>
-    protected void LevelUp(int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            _current.Level++;
-            _float.MaxHp *= _grow.MaxHp;
-            _float.MaxSp *= _grow.MaxSp;
-            _float.Atk *= _grow.Atk;
-            _float.Def *= _grow.Def_percent;
-            _float.Speed *= _grow.Speed;
-            Debug.Log(gameObject.name + "のレベルが上がった！");
-        }
-        SetCurrentStatus();
-    }
-
-    /// <summary>
-    /// レベルが下落したときの処理を行います。
-    /// </summary>
-    protected void LevelDown(int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            if (_current.Level == 1)
-            {
-                Debug.Log("しかし" + gameObject.name + "のレベルはもう下がらなかった！");
-                break;
-            }
-            else
-            {
-                _current.Level--;
-                _float.MaxHp /= _grow.MaxHp;
-                _float.MaxSp /= _grow.MaxSp;
-                _float.Atk /= _grow.Atk;
-                _float.Def /= _grow.Def_percent;
-                _float.Speed /= _grow.Speed;
-                Debug.Log(gameObject.name + "のレベルが下がった！");
-            }
-        }
-        SetCurrentStatus();
-    }
-
-    /// <summary>
-    /// 実際に表示されるステータスをセットします。
-    /// </summary>
-    private void SetCurrentStatus()
-    {
-        _current.MaxHp = (int)_float.MaxHp;
-        _current.Hp = _current.MaxHp;
-        _current.MaxSp = (int)_float.MaxSp;
-        _current.Sp = _current.MaxSp;
-        _current.Atk = (int)_float.Atk;
-        _current.Def = (int)_float.Def;
-        _current.Speed = (int)_float.Speed;
-        _current.Exp = _status.Basic.Exp;
     }
 
     // *** バトル関連 メソッド ******************
@@ -180,17 +75,17 @@ abstract class Character : MonoBehaviour
     public void DamageCalculation(int enemy_attack)
     {
         int damage;
-        if (_current.Def == 0)
+        if (_status.Def == 0)
         {
             damage = enemy_attack;
         }
-        else if (_current.Def >= 100)
+        else if (_status.Def >= 100)
         {
             damage = 0;
         }
         else
         {
-            damage = enemy_attack * (100 - _current.Def) / 100;
+            damage = enemy_attack * (100 - _status.Def) / 100;
         }
         if (damage > 0) Damaged(damage);
     }
@@ -200,11 +95,10 @@ abstract class Character : MonoBehaviour
     /// </summary>
     public void DamageCalculation(int enemy_attack, int weak)
     {
-        _float.Def /= weak;
-        _current.Def = (int)_float.Def;
+        int def = _status.Def;
+        _status.Def /= weak;
         DamageCalculation(enemy_attack);
-        _float.Def *= weak;
-        _current.Def = (int)_float.Def;
+        _status.Def = def;
     }
 
     /// <summary>
@@ -212,10 +106,10 @@ abstract class Character : MonoBehaviour
     /// </summary>
     private void Damaged(int damage)
     {
-        _current.Hp -= damage;
-        if (_current.Hp <= 0)
+        _status.Hp -= damage;
+        if (_status.Hp <= 0)
         {
-            _current.Hp = 0;
+            _status.Hp = 0;
             DeathCharacter();
         }
         else if (_chargeSkill != -1)
@@ -253,46 +147,6 @@ abstract class Character : MonoBehaviour
         _rigidbody.AddForce(v3, ForceMode.Impulse);
     }
 
-    /// <summary>
-    /// アクション時間をセットし、アクション時間が残っている間は行動を制限させます。
-    /// </summary>
-    public void SetActionTime(float time)
-    {
-        _actionTime = time;
-    }
-
-    /// <summary>
-    /// 現在チャージしているスキルをセットします。
-    /// </summary>
-    public void SetChargeSkill(int n)
-    {
-        _chargeSkill = n;
-    }
-
-    /// <summary>
-    /// 移動方向と速度をセットします。
-    /// </summary>
-    public void SetVelocity(Vector3 v3)
-    {
-        _velocity = v3;
-    }
-
-    /// <summary>
-    /// 移動方向と速度をセットします。
-    /// </summary>
-    public void SetRotation(Quaternion quaternion)
-    {
-        _characterRotation = quaternion;
-    }
-
-    /// <summary>
-    /// スキルの最長射程を登録します。
-    /// </summary>
-    public void SetMaxRange(float range)
-    {
-        _maxSkillRange = Mathf.Max(_maxSkillRange, range);
-    }
-
     // *** 位置関係取得 メソッド ******************
     /// <summary>
     /// 自身のTransformを返します。
@@ -317,7 +171,7 @@ abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// 自身→標的の方向ベクトルを設定します。標的がいない場合は自分の正面をセットします。
+    /// 自身→標的の方向ベクトル"_focus"を設定します。標的がいない場合は自分の正面をセットします。
     /// </summary>
     /// 
     protected void FocusTarget()
@@ -375,6 +229,4 @@ abstract class Character : MonoBehaviour
     /// HPが0以下になった場合の処理
     /// </summary>
     abstract protected void DeathCharacter();
-
-    abstract protected void SetCharacterAngle();
 }

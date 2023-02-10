@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3769784522108484529}
-  - component: {fileID: 3103685011085826351}
+  - component: {fileID: 5060784096327951658}
   m_Layer: 0
   m_Name: Walk
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3103685011085826351
+--- !u!114 &5060784096327951658
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,10 +41,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 9026567671152700480}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7bf97d5cffa09e48b7af7794c308a87, type: 3}
+  m_Script: {fileID: 11500000, guid: 136ba30305b9d5048a0746b57b5d2083, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  information: "\u76F4\u9032\u3057\u307E\u3059\u3002"
+  information: 
   useSp: 0
-  freezeTime: 0
-  skillType: 0
+  range: 0
+  chargeTime: 0
+  freezeTime: 2
+  damagedCancel: 0
+  dashSpeed: 0
+  dashTime: 0

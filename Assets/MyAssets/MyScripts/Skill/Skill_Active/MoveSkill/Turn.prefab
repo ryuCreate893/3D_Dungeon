@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3769784522108484529}
-  - component: {fileID: 2959544272806464113}
+  - component: {fileID: 5074297349486195501}
   m_Layer: 0
   m_Name: Turn
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2959544272806464113
+--- !u!114 &5074297349486195501
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,10 +41,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 9026567671152700480}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a2a0d1fc50e79a4cadffe1a41b16c77, type: 3}
+  m_Script: {fileID: 11500000, guid: 268d9dfad98c3e5409ccb2915e72675b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  information: "\u9032\u884C\u65B9\u5411\u3092\u5909\u3048\u307E\u3059\u3002"
+  information: 
   useSp: 0
-  freezeTime: 0
-  skillType: 0
+  range: 0
+  chargeTime: 0
+  freezeTime: 2
+  damagedCancel: 0
+  dashSpeed: 0
+  dashTime: 0

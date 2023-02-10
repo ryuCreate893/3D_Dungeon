@@ -26,7 +26,7 @@ class Player : Character
     /// <summary>
     /// キー入力による移動を受け付ける状態の管理(false = 受け付けない)
     /// </summary>
-    private bool isGetAxis = true;
+    public bool isGetAxis { private get; set; } = true;
 
     // *** アクション能力 ***
     /// <summary>
@@ -64,13 +64,20 @@ class Player : Character
 
     private void Update()
     {
+        if (isGetAxis) // isGetAxis = trueのとき、方向入力を受け付ける
+        {
+            _horizontal = Input.GetAxis("Horizontal");
+            _vertical = Input.GetAxis("Vertical");
+            _velocity = new Vector3(_horizontal, 0, _vertical).normalized;
+        }
+
         if (_actionTime > 0) // 他のスキルを発動できない状態
         {
             _actionTime -= Time.deltaTime;
         }
         else
         {
-            isGetAxis = true; // 特定のスキル使用中以外はキー移動を許可する
+            isGetAxis = true; // 特定のスキル使用中以外はキー移動を許可
 
             if (_chargeSkill != -1) // チャージしているスキルの発動
             {
@@ -78,43 +85,51 @@ class Player : Character
             }
             else if (Input.GetButtonDown("SlowMove") && isGround) // ゆっくり移動の切り替え
             {
-                _animator.SetBool("slowmove", isSlow);
-                _animator.SetBool("running", !isSlow);
+                isSlow = !isSlow;
             }
             else if (actionCount > 0) // スキルに対応するボタンを押していた場合の処理
             {
                 UseSkill(moveSkill);
-                if(_actionTime <= 0) UseSkill(activeSkill);
+                if (_actionTime <= 0) UseSkill(activeSkill);
+                if (_actionTime > 0)
+                {
+                    isSlow = false;
+                }
             }
         }
 
         if (isGetAxis) // 進行方向の決定(isGetAxisがfalseの場合は方向を固定)
         {
-            _horizontal = Input.GetAxis("Horizontal");
-            _vertical = Input.GetAxis("Vertical");
-            _velocity = new Vector3(_horizontal, 0, _vertical).normalized;
-            if (isSlow)
+            // y軸を軸としたカメラの回転を取得(Player専用)
+            Quaternion _horizontalRotation = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
+
+            // カメラの方向を考慮したキャラクターの方向ベクトルを作成
+            _velocity = _horizontalRotation * _velocity;
+
+            // 回転が起きる場合はy軸を軸としたキャラクターの回転を取得
+            if (_velocity.magnitude > 0.1f)
             {
-                _velocity /= 0.5f;
+                _characterRotation = Quaternion.LookRotation(_velocity, Vector3.up);
             }
-            else
-            {
-                _velocity *= _current.Speed;
-            }
-            SetCharacterAngle();
 
             // スキルのチャージ中に移動した場合はスキルのチャージをキャンセルします。
             if (_chargeSkill != -1 && (isSlow || _velocity.magnitude > 0.1f))
             {
+                _chargeSkill = -1;
                 _actionTime = 0;
+            }
+
+            if (!isSlow)
+            {
+                _velocity *= _status.Speed;
             }
         }
         else
         {
-            SetRotation(Quaternion.identity);
+            _characterRotation = _transform.rotation;
         }
-        // 現在の向きから移動後の向きまで回転させる
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, _current.Speed * Time.deltaTime);
+
+        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, 720 * Time.deltaTime);
     }
 
     // *** スキルの発動判定に関わるメソッド ***
@@ -132,6 +147,7 @@ class Player : Character
                 if (_actionTime > 0)
                 {
                     actionCount--;
+                    Debug.Log(actionCount);
                     isGetAxis = skillList[i].IsGetAxis;
                     break;
                 }
@@ -139,33 +155,9 @@ class Player : Character
         }
     }
 
-    /// <summary>
-    /// 方向入力を受け付けるかどうかを設定します。
-    /// </summary>
-    /// <param name="isGetAxis"></param>
-    public void SetAxisBool(bool isGetAxis)
-    {
-        this.isGetAxis = isGetAxis;
-    }
-
     protected override void DamagedCancel(int n)
     {
         activeSkill[n].Skill.DamagedCancel();
-    }
-
-    protected override void SetCharacterAngle()
-    {
-        // y軸を軸としたカメラの回転を取得(Player専用)
-        Quaternion _horizontalRotation = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
-
-        // カメラの方向を考慮したキャラクターの方向ベクトルを作成
-        _velocity = _horizontalRotation * _velocity;
-
-        // 回転が起きる場合はy軸を軸としたキャラクターの回転を取得
-        if (_velocity.magnitude > 0.1f)
-        {
-            SetRotation(Quaternion.LookRotation(_velocity, Vector3.up));
-        }
     }
 
     public override void GetNewSkill(GameObject skill) { }
@@ -214,6 +206,7 @@ class Player : Character
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGround = false;
+            actionCount--;
             _animator.SetBool("isground", isGround);
         }
     }
