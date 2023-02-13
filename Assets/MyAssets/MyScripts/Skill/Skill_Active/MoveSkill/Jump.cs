@@ -4,10 +4,7 @@ using UnityEngine;
 
 class Jump : ActiveSkill
 {
-    /* private UseSP_valiable S_judge; // SP消費処理
-     * private Targeting_valiable T_judge; // ターゲッティング処理
-     * private Charge_valiable C_judge; // チャージ処理
-     */
+    [Header("専用スキル情報")]
     [SerializeField, Tooltip("ジャンプの高さ")]
     private float height;
 
@@ -17,12 +14,6 @@ class Jump : ActiveSkill
     {
         base.SetSkill(character);
         userRigidbody = user.GetComponent<Rigidbody>();
-    }
-
-    public override void TrySkill()
-    {
-        SkillContent();
-        user._actionTime = freezeTime;
     }
 
     public override void SkillContent()

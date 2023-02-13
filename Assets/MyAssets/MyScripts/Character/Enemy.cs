@@ -38,6 +38,11 @@ class Enemy : Character
     /// </summary>
     private bool isFound = false;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        _turnSpeed /= 4;
+    }
 
     protected virtual void Update()
     {
@@ -85,6 +90,8 @@ class Enemy : Character
                 ChangeRooteen();
             }
         }
+
+        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, _turnSpeed * Time.deltaTime);
     }
 
 
@@ -96,8 +103,7 @@ class Enemy : Character
     {
         FocusTarget();
         Vector3 v3 = new Vector3(_focus.x, 0, _focus.z).normalized;
-        _characterRotation = Quaternion.FromToRotation(_transform.forward, v3);
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, 720 * Time.deltaTime);
+        _characterRotation = Quaternion.LookRotation(v3, _transform.up);
     }
 
 
@@ -145,7 +151,10 @@ class Enemy : Character
         // スキルをチャージしている
         if (_chargeSkill != -1)
         {
-            activeSkill[_chargeSkill].Skill.TrySkill();
+            if (activeSkill[_chargeSkill].Skill.TrySkill())
+            {
+                activeSkill[_chargeSkill].Skill.SkillContent();
+            }
             _chargeSkill = -1;
         }
 
@@ -176,6 +185,7 @@ class Enemy : Character
         _targetTransform = null;
         isFound = false;
         _chargeSkill = -1;
+        _turnSpeed /= 4;
         _characterRotation = _transform.rotation;
         Search();
         Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
@@ -201,10 +211,16 @@ class Enemy : Character
     {
         for (int i = 0; i < skillList.Count; i++)
         {
-            if (skillList[i].Type != SkillType.battle)
+            if (skillList[i].Type != SkillType.battle) // 戦闘時以外に使用できるスキルの判定
             {
-                if(skillList[i].JudgeOrdinary) skillList[i].Skill.TrySkill();
-                if (_actionTime > 0) break;
+                if (skillList[i].JudgeOrdinary) // 確率の判定
+                {
+                    if (skillList[i].Skill.TrySkill()) // 使用可能かどうかの判定
+                    {
+                        skillList[i].Skill.SkillContent();
+                        break;
+                    }
+                }
             }
         }
     }
@@ -315,6 +331,7 @@ class Enemy : Character
     {
         _target = target.GetComponent<Character>();
         _targetTransform = _target.GetComponent<Transform>();
+        _turnSpeed *= 4;
         isFound = true;
         _actionTime = 0; // 即座に見つけたときの行動ルーチンに移る
         trackingTime = MaxTrackingTime;

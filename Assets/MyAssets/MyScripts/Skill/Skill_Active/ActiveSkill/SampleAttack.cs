@@ -4,12 +4,6 @@ using UnityEngine;
 
 class SampleAttack : ActiveSkill
 {
-
-
-    public override void TrySkill()
-    {
-        SkillContent();
-    }
     public override void SkillContent()
     {
 

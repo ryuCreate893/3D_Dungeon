@@ -4,27 +4,49 @@ using UnityEngine;
 
 public class CameraMover : MonoBehaviour
 {
+    // *** 位置情報の取得 ***
     /// <summary>
     /// カメラ自身の位置情報
     /// </summary>
     private Transform _transform;
     /// <summary>
+    /// カメラの回転情報
+    /// </summary>
+    private Quaternion _cameraRotation;
+    /// <summary>
     /// プレイヤーの位置情報
     /// </summary>
     private Transform _playerTransform;
     /// <summary>
-    /// カメラとプレイヤーの相対的な距離
+    /// プレイヤーの位置情報更新用
     /// </summary>
-    private Vector3 offset_v = new Vector3(0, 1.5f, 2.5f);
+    private Vector3 _playerPosition;
     /// <summary>
-    /// カメラの回転
+    /// 初期のカメラ・プレイヤー間の距離
     /// </summary>
-    private Quaternion offset_q;
+    private float setDistance = 3.0f;
     /// <summary>
-    /// カメラ→プレイヤーの方向ベクトル
+    /// 初期のカメラ・プレイヤー間の角度
     /// </summary>
-    private Vector3 v3look;
+    private float angle = 30.0f;
 
+    // *** カメラの回転に関わる変数 ***
+    /// <summary>
+    /// 基本回転速度
+    /// </summary>
+    private float rotateSpeed = 45;
+    /// <summary>
+    /// 回転速度の倍率設定
+    /// </summary>
+    private float speed = 1;
+    /// <summary>
+    /// X軸(縦方向)の回転の大きさ(0-1)
+    /// </summary>
+    private const float rotate_X = 0.7f;
+    /// <summary>
+    /// Y軸(横方向)の回転の大きさ(0-1)
+    /// </summary>
+    private const float rotate_Y = 1.0f;
     /// <summary>
     /// カメラの高さ制限(低)
     /// </summary>
@@ -33,54 +55,81 @@ public class CameraMover : MonoBehaviour
     /// カメラの高さ制限(高)
     /// </summary>
     private const float maxRotate_X = 60;
-    /// <summary>
-    /// カメラの移動速度(横)
-    /// </summary>
-    private const float rotate_X = 0.5f;
-    /// <summary>
-    /// カメラの移動速度(縦)
-    /// </summary>
-    private const float rotate_Y = 0.8f;
 
+    // *** マウスの位置に関わる変数 ***
+    /// <summary>
+    /// マウス座標
+    /// </summary>
+    private Vector3 mousePos;
+    /// <summary>
+    /// スクリーンの横幅
+    /// </summary>
+    private float width = Screen.width;
+    /// <summary>
+    /// スクリーンの立幅
+    /// </summary>
+    private float height = Screen.height;
 
     private void Start()
     {
         _transform = GetComponent<Transform>();
         _playerTransform = Player.playerInstance.GetComponent<Transform>();
-        //_transform.Rotate(10, 0, 0);
-        //_transform.eulerAngles = new Vector3(_transform.eulerAngles.x + 10, _transform.eulerAngles.y, _transform.eulerAngles.z);
+        _playerPosition = _playerTransform.position;
+
+        _transform.position = _playerTransform.forward * -setDistance;
+        _transform.LookAt(_playerPosition);
+        Quaternion qxPos = Quaternion.AngleAxis(angle, _playerTransform.right);
+        Quaternion qxRot = Quaternion.AngleAxis(angle * rotate_X, _playerTransform.right);
+        _transform.position = qxPos * _transform.position;
+        _transform.rotation = qxRot * _transform.rotation;
+        _cameraRotation = _transform.rotation;
     }
 
     private void Update()
     {
-        //_transform.position = _playerTransform.position + offset_v;
+        _transform.position += _playerTransform.position - _playerPosition;
+        _playerPosition = _playerTransform.position;
         if (Cursor.lockState == CursorLockMode.Confined)
         {
-            float x = Input.GetAxis("Mouse X") * rotate_X;
-            float y = Input.GetAxis("Mouse Y") * rotate_Y;
+            mousePos = Input.mousePosition;
+            if (mousePos.x <= 0 || width <= mousePos.x || mousePos.y <= 0 || height <= mousePos.y)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+            else
+            {
+                float x = Input.GetAxis("Mouse Y") * rotate_X * speed;
+                float y = Input.GetAxis("Mouse X") * rotate_Y * speed;
+                //Debug.Log(x + ", " + y);
+                // 上下移動の設定
+                if (_transform.rotation.x + x <= minRotate_X) // 最低高度より下に回転する場合
+                {
+                    Debug.Log("最低高度です。");
+                    x = minRotate_X - _transform.rotation.x;
+                }
+                else if (_transform.rotation.x + x >= maxRotate_X) // 最高高度より上に回転する場合
+                {
+                    Debug.Log("最高高度です。");
+                    x = maxRotate_X - _transform.rotation.x;
+                }
+                Quaternion qxPos = Quaternion.AngleAxis(x, _playerTransform.right);
+                Quaternion qxRot = Quaternion.Lerp(_transform.rotation, qxPos, rotate_X);
 
-            // 上下移動
-            _transform.RotateAround(_playerTransform.position, _playerTransform.right, y);
-            //_transform.rotation = Mathf.Min(_transform.rotation.y, maxRotate_X);
-            //_transform.rotation.y = Mathf.Max(_transform.rotation.y, minRotate_X);
+                // 横移動の設定
+                Quaternion qy = Quaternion.AngleAxis(y, _playerTransform.up);
 
-            // 横移動
-            _transform.RotateAround(_playerTransform.position, _playerTransform.up, x);
+                // カメラの位置設定
+                Vector3 _horizontalPosition = (qxPos * qy) * _transform.position;
+                _transform.position = Vector3.Slerp(_transform.position, _horizontalPosition, rotateSpeed * speed * Time.deltaTime);
+
+                // カメラの回転設定
+                _cameraRotation = (qxRot * qy) * _cameraRotation;
+                _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _cameraRotation, rotateSpeed * speed * Time.deltaTime);
+            }
         }
-
-        v3look = VectorSet();
-        //_transform.LookAt(_playerTransform);
-        
-        _transform.rotation = Quaternion.LookRotation(v3look, _playerTransform.up);
-    }
-
-    /// <summary>
-    /// 縦回転を抑制した方向ベクトルを返します。
-    /// </summary>
-    private Vector3 VectorSet()
-    {
-        Vector3 v3 = _playerTransform.position - _transform.position;
-        v3.y *= 0.5f;
-        return v3;
+        else
+        {
+            Cursor.lockState = CursorLockMode.Confined;
+        }
     }
 }

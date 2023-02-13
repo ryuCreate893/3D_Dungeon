@@ -38,16 +38,6 @@ class Player : Character
     /// </summary>
     private int actionCount = 1;
 
-    // *** 移動方向入力用変数 ***
-    /// <summary>
-    /// 横移動
-    /// </summary>
-    private float _horizontal;
-    /// <summary>
-    /// 奥行き移動
-    /// </summary>
-    private float _vertical;
-
     protected override void Awake()
     {
         if (playerInstance == null)
@@ -64,41 +54,46 @@ class Player : Character
 
     private void Update()
     {
-        if (isGetAxis) // isGetAxis = trueのとき、方向入力を受け付ける
-        {
-            _horizontal = Input.GetAxis("Horizontal");
-            _vertical = Input.GetAxis("Vertical");
-            _velocity = new Vector3(_horizontal, 0, _vertical).normalized;
-        }
-
-        if (_actionTime > 0) // 他のスキルを発動できない状態
+        // アクション時間が残っている
+        if (_actionTime > 0)
         {
             _actionTime -= Time.deltaTime;
+            if (isGetAxis) SetVelocity();
         }
+
+        // アクション時間が経過した
         else
         {
-            isGetAxis = true; // 特定のスキル使用中以外はキー移動を許可
+            isGetAxis = true;
+            SetVelocity();
 
-            if (_chargeSkill != -1) // チャージしているスキルの発動
+            // スキルをチャージしている
+            if (_chargeSkill != -1)
             {
-                activeSkill[_chargeSkill].Skill.TrySkill();
+                if (activeSkill[_chargeSkill].Skill.TrySkill())
+                {
+                    activeSkill[_chargeSkill].Skill.SkillContent();
+                    _chargeSkill = -1;
+                }
             }
-            else if (Input.GetButtonDown("SlowMove") && isGround) // ゆっくり移動の切り替え
+
+            // ゆっくり移動の切り替え
+            else if (Input.GetButtonDown("SlowMove") && isGround)
             {
                 isSlow = !isSlow;
             }
-            else if (actionCount > 0) // スキルに対応するボタンを押していた場合の処理
+
+            // アクションが使用可能で、スキルに対応するボタンを押している
+            else if (actionCount > 0) 
             {
                 UseSkill(moveSkill);
                 if (_actionTime <= 0) UseSkill(activeSkill);
-                if (_actionTime > 0)
-                {
-                    isSlow = false;
-                }
             }
         }
 
-        if (isGetAxis) // 進行方向の決定(isGetAxisがfalseの場合は方向を固定)
+
+        // 進行方向の決定
+        if (isGetAxis) 
         {
             // y軸を軸としたカメラの回転を取得(Player専用)
             Quaternion _horizontalRotation = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
@@ -124,12 +119,18 @@ class Player : Character
                 _velocity *= _status.Speed;
             }
         }
-        else
-        {
-            _characterRotation = _transform.rotation;
-        }
 
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, 720 * Time.deltaTime);
+        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, _turnSpeed * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// 移動方向"_velocity"を設定
+    /// </summary>
+    private void SetVelocity()
+    {
+        float _horizontal = Input.GetAxis("Horizontal");
+        float _vertical = Input.GetAxis("Vertical");
+        _velocity = new Vector3(_horizontal, 0, _vertical).normalized;
     }
 
     // *** スキルの発動判定に関わるメソッド ***
@@ -143,12 +144,12 @@ class Player : Character
         {
             if (Input.GetButtonDown(skillList[i].Key))
             {
-                skillList[i].Skill.TrySkill();
-                if (_actionTime > 0)
+                if(skillList[i].Skill.TrySkill())
                 {
+                    skillList[i].Skill.SkillContent();
                     actionCount--;
-                    Debug.Log(actionCount);
                     isGetAxis = skillList[i].IsGetAxis;
+                    isSlow = false;
                     break;
                 }
             }

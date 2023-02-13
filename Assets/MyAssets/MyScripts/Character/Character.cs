@@ -32,11 +32,16 @@ abstract class Character : MonoBehaviour
     /// <summary>
     /// アクション一つひとつに掛かる時間
     /// </summary>
-    public float _actionTime { protected get; set; }
+    public float _actionTime { get; set; }
     /// <summary>
     /// 現在チャージしているスキルの番号
     /// </summary>
     public int _chargeSkill { protected get; set; } = -1;
+
+    /// <summary>
+    /// 回転スピード
+    /// </summary>
+    protected float _turnSpeed = 360;
 
     [SerializeField, Tooltip("ステータス情報")]
     protected CharacterStatus _status;

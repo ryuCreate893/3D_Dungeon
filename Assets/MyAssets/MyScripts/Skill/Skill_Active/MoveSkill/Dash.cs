@@ -4,32 +4,30 @@ using UnityEngine;
 
 class Dash : ActiveSkill
 {
-    /* private UseSP_valiable S_judge; // SP消費処理
-     * private Targeting_valiable T_judge; // ターゲッティング処理
-     * private Charge_valiable C_judge; // チャージ処理
-     */
+    [Header("専用スキル情報")]
     [SerializeField, Tooltip("ダッシュ時の加速倍率")]
     private float dashSpeed;
-    [SerializeField, Tooltip("ダッシュに掛かる時間(freezeTime > dashTime)")]
-    private float dashTime;
 
     private Transform userTransform;
+    private Rigidbody userRigidbody;
 
     public override void SetSkill(GameObject character)
     {
         base.SetSkill(character);
         userTransform = user.GetComponent<Transform>();
-    }
-
-    public override void TrySkill()
-    {
-        SkillContent();
-        user._actionTime = freezeTime;
+        userRigidbody = user.GetComponent<Rigidbody>();
     }
 
     public override void SkillContent()
     {
         Vector3 v3 = userTransform.forward * userStatus.Speed * dashSpeed;
         user._velocity = v3;
+        userRigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+        Invoke("ReturnFreeze", freezeTime);
+    }
+
+    private void ReturnFreeze()
+    {
+        userRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
     }
 }

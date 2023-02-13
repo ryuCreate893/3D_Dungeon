@@ -9,9 +9,4 @@ class SampleSkill_a : ActiveSkill
     {
 
     }
-    public override void TrySkill()
-    {
-
-        SkillContent();
-    }
 }

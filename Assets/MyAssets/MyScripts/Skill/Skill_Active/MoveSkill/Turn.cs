@@ -4,15 +4,6 @@ using UnityEngine;
 
 class Turn : ActiveSkill
 {
-    /* private UseSP_valiable S_judge; // SP消費処理
-     * private Targeting_valiable T_judge; // ターゲッティング処理
-     * private Charge_valiable C_judge; // チャージ処理
-     */
-    [SerializeField, Tooltip("ダッシュ時の加速倍率")]
-    private float dashSpeed;
-    [SerializeField, Tooltip("ダッシュに掛かる時間(freezeTime > dashTime)")]
-    private float dashTime;
-
     private Transform userTransform;
 
     public override void SetSkill(GameObject character)
@@ -21,18 +12,11 @@ class Turn : ActiveSkill
         userTransform = user.GetComponent<Transform>();
     }
 
-    public override void TrySkill()
-    {
-        SkillContent();
-        user._actionTime = freezeTime;
-    }
-
     public override void SkillContent()
     {
+        user._velocity = Vector3.zero;
         int rnd = Random.Range(-180, 181);
-        Quaternion quaternion = Quaternion.AngleAxis(rnd, userTransform.up);
-        user._characterRotation = quaternion;
-        userTransform.rotation = Quaternion.RotateTowards(userTransform.rotation, quaternion, userStatus.Speed * Time.deltaTime);
+        user._characterRotation = Quaternion.AngleAxis(rnd, userTransform.up);
         user._actionTime = freezeTime;
 
         if (rnd < 0)
