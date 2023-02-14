@@ -783,7 +783,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 728680300}
-  - component: {fileID: 728680299}
   m_Layer: 0
   m_Name: D_Manager
   m_TagString: Untagged
@@ -791,29 +790,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &728680299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 728680298}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70c049fba3b84db43b53b888cbfb7285, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dungeonName: "\u306F\u3058\u307E\u308A\u306E\u6D1E\u7A9F"
-  maxFloor: 3
-  goalScene: CaveofFirst_Clear
-  floorItem: 0
-  items: []
-  floorTrap: 0
-  traps: []
-  floorEnemy: 0
-  maxEnemy: 0
-  enemies: []
-  spawnTime: 0
 --- !u!4 &728680300
 Transform:
   m_ObjectHideFlags: 0
