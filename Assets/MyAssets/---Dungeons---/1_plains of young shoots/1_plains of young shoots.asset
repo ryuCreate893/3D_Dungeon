@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4817d474e2de43c4fbcf18b3ee6938da, type: 3}
+  m_Name: 1_plains of young shoots
+  m_EditorClassIdentifier: 
+  dungeonName: "\u82E5\u82BD\u306E\u5E73\u539F"
+  depth:
+  - floorPattern: []
+    item: []
+    trap: []
+    enemy: []
+    mapItem: 0
+    mapTrap: 0
+    mapEnemy: 0
+    maxEnemy: 0
+    spawnTime: 0
+    limitTime: 0
