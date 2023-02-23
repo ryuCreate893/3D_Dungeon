@@ -1366,8 +1366,6 @@ MonoBehaviour:
     growMaxHp: 3
     growMaxSp: 2
     growAtk: 2
-    growDef: 0
-    growSpeed: 0
     growExp: 0
     level: 0
     maxHp: 0
@@ -1603,7 +1601,7 @@ MonoBehaviour:
   interval: 5
   windPower: 1
   gravity: 0.98
-  isGUI: 1
+  isGUI: 0
 --- !u!114 &5807474449562257181
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1623,7 +1621,7 @@ MonoBehaviour:
   headWeight: 0.8
   eyesWeight: 1
   clampWeight: 0.5
-  isGUI: 1
+  isGUI: 0
 --- !u!1 &5807474449567444464
 GameObject:
   m_ObjectHideFlags: 0

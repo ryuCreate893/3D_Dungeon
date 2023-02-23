@@ -5,18 +5,24 @@ using UnityEngine;
 // ダンジョン内の進行管理を行います。
 class D_Manager : MonoBehaviour
 {
+    [SerializeField, Tooltip("先へ行くための階段などのオブジェクトを登録します。")]
+    private GameObject stair;
+    [SerializeField, Tooltip("S_Managerを登録します。")]
+    private S_Manager scene_manager;
+    [SerializeField]
+    private DungeonData dungeon;
     public static D_Manager gameInstance;
 
     /// <summary>
     /// ダンジョンをセットします。
     /// </summary>
-    public DungeonData Dungeon { get; set; }
+    public DungeonData Dungeon { get { return dungeon; } set { dungeon = value; } }
 
     // *** ダンジョンの階層管理 ***
     /// <summary>
     /// 現在の階層
     /// </summary>
-    private int floor = 0;
+    public int Floor { get; private set; }
     /// <summary>
     /// 最下層
     /// </summary>
@@ -63,26 +69,21 @@ class D_Manager : MonoBehaviour
 
     private void Start()
     {
-        maxSpawnTime = Dungeon.Depth[floor].SpawnTime;
+        maxSpawnTime = Dungeon.Depth[Floor].SpawnTime;
         spawnTime = maxSpawnTime;
-        limitTime = Dungeon.Depth[floor].LimitTime;
-        int rnd = Random.Range(0, Dungeon.Depth[floor].FloorPattern.Length);
-        floorName = "a";
+        limitTime = Dungeon.Depth[Floor].LimitTime;
+        int rnd = Random.Range(0, Dungeon.Depth[Floor].FloorPattern.Length);
+        floorName = Dungeon.Depth[Floor].FloorPattern[rnd];
     }
 
     private void Update()
     {
-        if (limitTime != -1)
-        {
-            limitTime -= Time.deltaTime;
-        }
-
         if (spawnTime != -1)
         {
             spawnTime -= Time.deltaTime;
             if (spawnTime <= 0)
             {
-                SelectSpawn(1, Dungeon.Depth[floor].Enemy);
+                SelectSpawn(1, Dungeon.Depth[Floor].Enemy);
                 spawnTime = maxSpawnTime;
             }
         }
@@ -93,28 +94,22 @@ class D_Manager : MonoBehaviour
     /// </summary>
     public void Lift()
     {
-        floor++;
-        if (floor == maxFloor)
+        Floor++;
+        if (Floor == maxFloor)
         {
             S_Manager.SetLastMainScene(Dungeon.LastScene);
         }
         else
         {
-            int n = Dungeon.Depth[floor].FloorPattern.Length;
+            int n = Dungeon.Depth[Floor].FloorPattern.Length;
             int rnd = Random.Range(0, n);
-            if (Dungeon.Depth[floor].FloorPattern[rnd] == floorName)
+            if (Dungeon.Depth[Floor].FloorPattern[rnd] == floorName)
             {
-                if (rnd == n - 1)
-                {
-                    rnd = 0;
-                }
-                else
-                {
-                    rnd++;
-                }
+                rnd++;
+                if (rnd == n) rnd = 0;
             }
-            floorName = Dungeon.Depth[floor].FloorPattern[rnd];
-            S_Manager.SetNewMainScene(floorName);
+            floorName = Dungeon.Depth[Floor].FloorPattern[rnd];
+            scene_manager.SetNewMainScene(floorName);
         }
     }
 
@@ -123,9 +118,9 @@ class D_Manager : MonoBehaviour
     /// </summary>
     public void SetFloor()
     {
-        SelectSpawn(Dungeon.Depth[floor].MapItem, Dungeon.Depth[floor].Item);
-        SelectSpawn(Dungeon.Depth[floor].MapTrap, Dungeon.Depth[floor].Trap);
-        SelectSpawn(Dungeon.Depth[floor].MapEnemy, Dungeon.Depth[floor].Enemy);
+        SelectSpawn(Dungeon.Depth[Floor].MapItem, Dungeon.Depth[Floor].Item);
+        SelectSpawn(Dungeon.Depth[Floor].MapTrap, Dungeon.Depth[Floor].Trap);
+        SelectSpawn(Dungeon.Depth[Floor].MapEnemy, Dungeon.Depth[Floor].Enemy);
     }
 
     private void SelectSpawn(int n, SpawnData[] data)

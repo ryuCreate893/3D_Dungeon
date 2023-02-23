@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dungeonName: "\u82E5\u82BD\u306E\u5E73\u539F"
   depth:
-  - floorPattern: []
+  - floorPattern:
+    - Floor1
     item: []
     trap: []
     enemy: []
@@ -24,3 +25,26 @@ MonoBehaviour:
     maxEnemy: 0
     spawnTime: 0
     limitTime: 0
+  - floorPattern:
+    - Floor2
+    item: []
+    trap: []
+    enemy: []
+    mapItem: 0
+    mapTrap: 0
+    mapEnemy: 0
+    maxEnemy: 0
+    spawnTime: 0
+    limitTime: 0
+  - floorPattern:
+    - Floor3
+    item: []
+    trap: []
+    enemy: []
+    mapItem: 0
+    mapTrap: 0
+    mapEnemy: 0
+    maxEnemy: 0
+    spawnTime: 0
+    limitTime: 0
+  lastScene: 1_LastFloor

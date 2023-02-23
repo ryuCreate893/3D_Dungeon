@@ -71,11 +71,11 @@ public class CameraMover : MonoBehaviour
 
     private void Start()
     {
+        _transform = GetComponent<Transform>();
         _playerTransform = Player.playerInstance.GetComponent<Transform>();
         pPos = _playerTransform.position;
 
-        _transform = GetComponent<Transform>();
-        _transform.position = _playerTransform.forward * -distance;
+        _transform.position = pPos + _playerTransform.forward * -distance;
         _transform.LookAt(pPos);
 
         posAssist = new GameObject("PositionAssist");
