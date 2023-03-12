@@ -8,11 +8,11 @@ class Player : Character
 
     [Header("スキル情報")]
     [SerializeField, Tooltip("アクティブスキルの一覧と判定保有")]
-    private List<PlayerActiveSkill> activeSkill;
+    private List<PlayerActiveSkill> active_skill;
     [SerializeField, Tooltip("ムーブスキルの一覧と判定保有")]
-    private List<PlayerActiveSkill> moveSkill;
+    private List<PlayerActiveSkill> move_skill;
     [SerializeField, Tooltip("パッシブスキルの一覧")]
-    private List<PassiveSkill> passiveSkill;
+    private List<PassiveSkill> passive_skill;
 
     // *** 判定 ***
     /// <summary>
@@ -32,65 +32,75 @@ class Player : Character
     /// <summary>
     /// 合計移動アクション回数(地上 + 空中で動ける回数)
     /// </summary>
-    private int maxActionCount = 1;
+    private int max_action_count = 1;
     /// <summary>
     /// 残り移動アクション回数
     /// </summary>
-    private int actionCount = 1;
+    private int action_count = 1;
 
     // *** 経験値情報 ***
-    private int maxExp = 50;
-    private float nextExp = 1.1f;
+    public int Exp { get; set; } = 0; // 現在の経験値(必要な経験値 = "status.Exp")
+    private float next_max_exp = 1.1f; // レベルアップ時、次に必要な経験値を計算する
 
-    protected override void Awake()
+    // *** コライダー情報 ***
+    /// <summary>
+    /// 音を発する範囲を設定します。
+    /// </summary>
+    public float Sound_radius { get; set; } = 3.0f;
+    /// <summary>
+    /// 音を発している状態を検知し、trueの場合はSound_radiusの半径までコライダーを拡大させ、falseの場合は0までコライダーを縮小させます。
+    /// </summary>
+    public bool Sound_produce { get; set; } = false;
+    private float run_sound_radius = 3.0f;
+    private float walk_sound_radius = 0.5f;
+
+    private void Awake()
     {
         if (playerInstance == null)
         {
             playerInstance = this;
             DontDestroyOnLoad(gameObject);
-            base.Awake();
         }
         else
         {
+            // 初期位置が決まっている場合は設定する(チュートリアル用マップなど)
+            Transform start_point = playerInstance.GetComponent<Transform>();
+            start_point.position = transform.position;
+            start_point.rotation = transform.rotation;
             Destroy(gameObject);
         }
     }
 
+    protected override void Start()
+    {
+        base.Start();
+        ResetPlayerStatusUI();
+    }
+
     private void Update()
     {
-        // アクション時間が残っている
-        if (_actionTime > 0)
+        // アクション時間の管理
+        if (Action_time > 0)
         {
-            _actionTime -= Time.deltaTime;
+            Action_time -= Time.deltaTime;
             if (isGetAxis) SetVelocity();
         }
-
-        // アクション時間が経過した
         else
         {
             isGetAxis = true;
 
-            // スキルをチャージしている
-            if (_chargeSkill != -1)
+            if (isCharge)
             {
-                if (activeSkill[_chargeSkill].Skill.TrySkill())
-                {
-                    activeSkill[_chargeSkill].Skill.SkillContent();
-                    _chargeSkill = -1;
-                }
+                Action?.Invoke(); // チャージスキルの発動
             }
-
-            // ゆっくり移動の切り替え
             else if (Input.GetButtonDown("SlowMove") && isGround)
             {
-                isSlow = !isSlow;
+                isSlow = !isSlow; // 移動方法の切り替え
             }
-
-            // アクションが使用可能で、スキルに対応するボタンを押している
-            else if (actionCount > 0)
+            else if (action_count > 0)
             {
-                UseSkill(moveSkill);
-                if (_actionTime <= 0) UseSkill(activeSkill);
+                InputCheck(move_skill); // 対応したボタンのスキルを使用
+                if (Action_time <= 0) InputCheck(active_skill);
             }
         }
 
@@ -100,46 +110,37 @@ class Player : Character
             SetVelocity();
 
             // y軸を軸としたカメラの回転を取得(Player専用)
-            Quaternion _horizontalRotation = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
+            Quaternion horizontal_rot = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
 
             // カメラの方向を考慮したキャラクターの方向ベクトルを作成
-            _velocity = _horizontalRotation * _velocity;
+            Velocity = horizontal_rot * Velocity;
 
-            // 回転が起きる場合はy軸を軸としたキャラクターの回転を取得
-            if (_velocity.magnitude > 0.1f)
+            // 回転が起きる場合はチャージ中のスキル解除・y軸を軸としたキャラクターの回転を取得
+            if (Velocity.magnitude > 0.1f)
             {
-                _characterRotation = Quaternion.LookRotation(_velocity, Vector3.up);
-            }
-
-            // スキルのチャージ中に移動した場合はスキルのチャージをキャンセルします。
-            if (_chargeSkill != -1 && (isSlow || _velocity.magnitude > 0.1f))
-            {
-                _chargeSkill = -1;
-                _actionTime = 0;
+                Action_cancel?.Invoke();
+                Character_rot = Quaternion.LookRotation(Velocity, Vector3.up);
             }
 
             if (!isSlow)
             {
-                _velocity *= _status.Speed;
+                Velocity *= status.Speed;
             }
         }
 
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, _turnSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, Character_rot, turn_speed * Time.deltaTime);
     }
 
-    /// <summary>
-    /// 移動方向"_velocity"を設定
-    /// </summary>
     private void SetVelocity()
     {
-        float _horizontal = Input.GetAxis("Horizontal");
-        float _vertical = Input.GetAxis("Vertical");
-        _velocity = new Vector3(_horizontal, 0, _vertical).normalized;
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        Velocity = new Vector3(horizontal, 0, vertical).normalized;
         // スキル未使用かつ 地面にいる
-        if (_actionTime <= 0 && isGround)
+        if (Action_time <= 0 && isGround)
         {
             // 移動中の場合
-            if (_velocity.magnitude > 0.1f)
+            if (Velocity.magnitude > 0.1f)
             {
                 _animator.SetBool("idle", false);
                 _animator.SetBool("slowmove", isSlow);
@@ -153,56 +154,54 @@ class Player : Character
         }
     }
 
-
     // *** スキルの発動判定に関わるメソッド ***
     /// <summary>
     /// 押したボタンから使用するスキルを選びます。
     /// </summary>
     /// <param name="skillList"></param>
-    private void UseSkill(List<PlayerActiveSkill> skillList)
+    private void InputCheck(List<PlayerActiveSkill> list)
     {
-        for (int i = 0; i < skillList.Count; i++)
+        for (int i = 0; i < list.Count; i++)
         {
-            if (Input.GetButtonDown(skillList[i].Key))
+            if (Input.GetButtonDown(list[i].Key))
             {
-                if (skillList[i].Skill.TrySkill())
+                if (list[i].Skill.TrySkill())
                 {
-                    skillList[i].Skill.SkillContent();
-                    actionCount--;
-                    isGetAxis = skillList[i].IsGetAxis;
+                    action_count--;
                     isSlow = false;
+                    isGetAxis = list[i].IsGetAxis;
+                    list[i].Skill.SkillContent();
+                    break;
+                }
+                else if (isCharge)
+                {
                     break;
                 }
             }
         }
     }
 
-    protected override void DamagedCancel(int n)
-    {
-        activeSkill[n].Skill.DamagedCancel();
-    }
-
     public override void GetNewSkill(GameObject skill) { }
 
     protected override void SetActiveSkill()
     {
-        for (int i = 0; i < activeSkill.Count; i++)
+        for (int i = 0; i < active_skill.Count; i++)
         {
-            activeSkill[i].Skill.SetSkill(gameObject);
+            active_skill[i].Skill.SetSkill(gameObject);
         }
 
-        for (int i = 0; i < moveSkill.Count; i++)
+        for (int i = 0; i < move_skill.Count; i++)
         {
-            moveSkill[i].Skill.SetSkill(gameObject);
+            move_skill[i].Skill.SetSkill(gameObject);
         }
     }
 
     protected override void SetPassiveSkill()
     {
-        for (int i = 0; i < passiveSkill.Count; i++)
+        for (int i = 0; i < passive_skill.Count; i++)
         {
-            passiveSkill[i].SetSkill(gameObject);
-            passiveSkill[i].SkillContent();
+            passive_skill[i].SetSkill(gameObject);
+            passive_skill[i].SkillContent();
         }
     }
 
@@ -210,24 +209,36 @@ class Player : Character
     public override void FoundEnemy(GameObject target) { }
     protected override void LoseSightEnemy() { }
 
-    public override void Beat(GameObject target)
+    public override void Beat(int get_exp)
     {
-        int count = 0;
-        _Status.Exp += target.GetComponent<Character>()._Status.Exp;
-        while (_Status.Exp >= maxExp)
+        int exp_value = Exp; // UIセット用
+        Exp += get_exp;
+        while (status.Exp <= Exp)
         {
-            _Status.Exp -= maxExp;
-            maxExp = (int)(maxExp * nextExp);
-            count++;
+            Exp -= status.Exp;
+            status.FloatExp *= next_max_exp;
+            status.Exp = (int)status.FloatExp;
+
+            LevelUp(1);
+            SetPlayerStatusUI_Max();
+            UI_Manager.UIInstance.Ps.Hp.Cure(status.MaxHp);
+            UI_Manager.UIInstance.Ps.Sp.Cure(status.MaxSp);
         }
-        if (count > 0) _Status.LevelUp(count);
+
+        if (Exp > exp_value)
+        {
+            UI_Manager.UIInstance.Ps.Exp.Cure(Exp);
+        }
+        else if (Exp < exp_value)
+        {
+            UI_Manager.UIInstance.Ps.Exp.Burn(Exp);
+        }
     }
 
     protected override void DeathCharacter()
     {
         Time.timeScale = 0;
         S_Manager.sceneInstance.Operate = true;
-
     }
 
     private void OnCollisionStay(Collision collision)
@@ -235,8 +246,8 @@ class Player : Character
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGround = true;
-            actionCount = maxActionCount;
-            _animator.SetBool("isground", isGround);
+            action_count = max_action_count;
+            _animator.SetBool("isground", true);
         }
     }
 
@@ -245,8 +256,37 @@ class Player : Character
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGround = false;
-            actionCount--;
-            _animator.SetBool("isground", isGround);
+            action_count--;
+            _animator.SetBool("isground", false);
         }
+    }
+
+    /// <summary>
+    /// UIの再設定を行います(D_Manager.Liftから呼び出し)
+    /// </summary>
+    public void ResetPlayerStatusUI()
+    {
+        SetPlayerStatusUI_Max();
+        SetPlayerStatusUI_Value();
+    }
+
+    /// <summary>
+    /// 現在の最大ステータスをUIに反映します。シーン切り替え時や、レベルアップ時などに呼び出します。
+    /// </summary>
+    private void SetPlayerStatusUI_Max()
+    {
+        UI_Manager.UIInstance.Ps.Hp.SetSlider_MaxValue(status.MaxHp);
+        UI_Manager.UIInstance.Ps.Sp.SetSlider_MaxValue(status.MaxSp);
+        UI_Manager.UIInstance.Ps.Exp.SetSlider_MaxValue(status.Exp);
+    }
+
+    /// <summary>
+    /// 現在のステータスをUIに反映します。差分を0にするので、シーン切り替え時のみ呼び出します。
+    /// </summary>
+    private void SetPlayerStatusUI_Value()
+    {
+        UI_Manager.UIInstance.Ps.Hp.SetSlider_Value(status.Hp);
+        UI_Manager.UIInstance.Ps.Sp.SetSlider_Value(status.Sp);
+        UI_Manager.UIInstance.Ps.Exp.SetSlider_Value(Exp);
     }
 }

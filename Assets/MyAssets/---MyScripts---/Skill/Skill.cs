@@ -5,7 +5,6 @@ using UnityEngine;
 // *** このスクリプトは継承用のため、アタッチしないでください。
 abstract class Skill : MonoBehaviour
 {
-    [Header("基本スキル情報")]
     [SerializeField, Tooltip("スキル説明)")]
     private string information;
 
@@ -16,7 +15,12 @@ abstract class Skill : MonoBehaviour
     /// <summary>
     /// スキルを所持しているキャラクターのステータス
     /// </summary>
-    protected CharacterStatus userStatus;
+    protected CharacterStatus user_status;
+    /// <summary>
+    /// スキルを所持しているキャラクターの位置情報
+    /// </summary>
+    protected Transform user_transform;
+
 
     /// <summary>
     /// スキル使用者の情報を取得します。
@@ -24,7 +28,8 @@ abstract class Skill : MonoBehaviour
     public virtual void SetSkill(GameObject character)
     {
         user = character.GetComponent<Character>();
-        userStatus = user._Status;
+        user_status = user.Status;
+        user_transform = user.GetComponent<Transform>();
     }
 
     /// <summary>

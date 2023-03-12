@@ -8,17 +8,17 @@ class Jump : ActiveSkill
     [SerializeField, Tooltip("ÉWÉÉÉìÉvÇÃçÇÇ≥")]
     private float height;
 
-    private Rigidbody userRigidbody;
+    private Rigidbody user_rigidbody;
 
     public override void SetSkill(GameObject character)
     {
         base.SetSkill(character);
-        userRigidbody = user.GetComponent<Rigidbody>();
+        user_rigidbody = user.GetComponent<Rigidbody>();
     }
 
     public override void SkillContent()
     {
-        userRigidbody.velocity -= new Vector3(0, userRigidbody.velocity.y, 0);
-        userRigidbody.AddForce(new Vector3(0, height, 0), ForceMode.Impulse);
+        user_rigidbody.velocity -= new Vector3(0, user_rigidbody.velocity.y, 0);
+        user_rigidbody.AddForce(new Vector3(0, height, 0), ForceMode.Impulse);
     }
 }

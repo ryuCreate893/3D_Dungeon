@@ -6,62 +6,58 @@ class Enemy : Character
 {
     [Header("スキル情報")]
     [SerializeField, Tooltip("アクティブスキルの一覧と発動確率")]
-    private List<EnemyActiveSkill> activeSkill;
+    private List<EnemyActiveSkill> active_skill;
     [SerializeField, Tooltip("ムーブスキルの一覧と発動確率")]
-    private List<EnemyActiveSkill> moveSkill;
+    private List<EnemyActiveSkill> move_skill;
     [SerializeField, Tooltip("パッシブスキルの一覧")]
-    private List<PassiveSkill> passiveSkill;
+    private List<PassiveSkill> passive_skill;
+
 
     /// <summary>
     /// 敵対していない状態におけるムーブスキルの発動確率(基本90%)
     /// </summary>
-    public int MoveProbability { get; protected set; } = 90;
+    public int move_judge { get; protected set; } = 90;
     /// <summary>
     /// プレイヤーを攻撃し始める距離
     /// </summary>
-    public float AttackDistance { get; protected set; } = 0;
+    public float atk_distance { get; protected set; } = 0;
     /// <summary>
     /// プレイヤーを見失う距離
     /// </summary>
-    public float LoseSightDistance { get; protected set; } = 5.0f;
+    public float lose_distance { get; protected set; } = 5.0f;
     /// <summary>
     /// プレイヤーを追跡する時間
     /// </summary>
-    public float MaxTrackingTime { get; protected set; } = 5.0f;
-
+    public float max_tracking_time { get; protected set; } = 5.0f;
     /// <summary>
     /// プレイヤーを追跡する時間の経過状況
     /// </summary>
-    private float trackingTime = 0;
+    private float tracking_time = 0;
     /// <summary>
     /// 敵がプレイヤーを知覚しているかどうかを判定(true=気づいている)
     /// </summary>
     private bool isFound = false;
 
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
-        _turnSpeed /= 4;
+        turn_speed /= 4; // プレイヤーを知覚していない場合は回転をゆっくりに
     }
 
     protected virtual void Update()
     {
-        // プレイヤーを発見している場合
+        // 知覚判定の切り替え
         if (isFound)
         {
-            // 追跡時間が残っている
-            if (trackingTime > 0)
+            if (tracking_time > 0)
             {
-                trackingTime -= Time.deltaTime;
+                tracking_time -= Time.deltaTime;
                 SetFocusAngle();
             }
-
-            // 追跡時間が経過した (見失った場合は"LoseSightEnemy()"を呼び出す)
             else
             {
-                if (CheckTargetDistence(LoseSightDistance))
+                if (Focus.magnitude <= lose_distance)
                 {
-                    trackingTime = MaxTrackingTime;
+                    tracking_time = max_tracking_time;
                     SetFocusAngle();
                 }
                 else
@@ -71,14 +67,11 @@ class Enemy : Character
             }
         }
 
-
-        // アクション時間が残っている
-        if (_actionTime > 0)
+        // アクション内容の切り替え
+        if (Action_time > 0)
         {
-            _actionTime -= Time.deltaTime;
+            Action_time -= Time.deltaTime;
         }
-
-        // アクション時間が経過した
         else
         {
             if (isFound)
@@ -91,133 +84,115 @@ class Enemy : Character
             }
         }
 
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _characterRotation, _turnSpeed * Time.deltaTime);
+        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, Character_rot, turn_speed * Time.deltaTime);
     }
-
 
     // *** Update内で呼び出すメソッド ***
     /// <summary>
-    /// プレイヤーの方向に向くための回転"_characterRotation"を設定
+    /// プレイヤーの方向に向くための回転"Character_rot"を設定
     /// </summary>
     private void SetFocusAngle()
     {
         FocusTarget();
-        Vector3 v3 = new Vector3(_focus.x, 0, _focus.z).normalized;
-        _characterRotation = Quaternion.LookRotation(v3, _transform.up);
+        Vector3 v3 = new Vector3(Focus.x, 0, Focus.z).normalized;
+        Character_rot = Quaternion.LookRotation(v3, _transform.up);
     }
-
 
     /// <summary>
     /// プレイヤーを知覚しているときの行動
     /// </summary>
     protected virtual void ChangeFoundRooteen()
     {
-        // スキルをチャージしている
-        if (_chargeSkill != -1)
+        if (isCharge)
         {
-            activeSkill[_chargeSkill].Skill.TrySkill();
+            Action?.Invoke();
         }
-
-        // スキルはチャージしていないが、攻撃の射程内である
-        else if (CheckTargetDistence(AttackDistance))
+        else if (Focus.magnitude <= atk_distance)
         {
-            _velocity = Vector3.zero;
-            for (int i = 0; i < activeSkill.Count; i++)
-            {
-                if (activeSkill[i].Type != SkillType.ordinary)
-                {
-                    if (activeSkill[i].JudgeBattle)
-                    {
-                        activeSkill[i].Skill.TrySkill();
-                        if (_actionTime > 0) break; // スキルが選択された場合はfor文から抜ける
-                    }
-                }
-            }
+            Velocity = Vector3.zero;
+            UseSkill(active_skill, SkillType.battle);
         }
-
-        // プレイヤーを知覚しているが、射程外にいる
         else
         {
-            _velocity = _transform.forward * _status.Speed;
+            Velocity = _transform.forward * status.Speed; // 追跡
         }
     }
-
 
     /// <summary>
     /// プレイヤーを発見していないときの行動
     /// </summary>
     protected virtual void ChangeRooteen()
     {
-        // スキルをチャージしている
-        if (_chargeSkill != -1)
+        if (isCharge)
         {
-            if (activeSkill[_chargeSkill].Skill.TrySkill())
-            {
-                activeSkill[_chargeSkill].Skill.SkillContent();
-            }
-            _chargeSkill = -1;
+            Action?.Invoke();
         }
-
-        // スキルをチャージしていない
         else
         {
-            // moveSkillの使用
-            if (Random.Range(1, 101) <= MoveProbability)
+            if (Random.Range(1, 101) <= move_judge) // 非戦闘時move_skillの使用
             {
-                UseOrdinarySkill(moveSkill);
+                UseSkill(move_skill, SkillType.ordinary);
             }
-
-            // activeSkillの使用
-            else
+            else // 非戦闘時active_skillの使用
             {
-                UseOrdinarySkill(activeSkill);
+                UseSkill(active_skill, SkillType.ordinary);
             }
         }
     }
 
-
     /// <summary>
-    /// プレイヤーを見失う処理("_characterRotation"もリセットされる)
+    /// プレイヤーを見失う処理("Character_rot"もリセットされる)
     /// </summary>
     protected override void LoseSightEnemy()
     {
-        _target = null;
-        _targetTransform = null;
+        Action_cancel?.Invoke();
+        target = null;
+        target_transform = null;
         isFound = false;
-        _chargeSkill = -1;
-        _turnSpeed /= 4;
-        _characterRotation = _transform.rotation;
+        turn_speed /= 4;
+        Character_rot = _transform.rotation;
         Search();
         Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
     }
-
 
     /// <summary>
     /// プレイヤーを見失ったとき専用のメソッドで、一定時間プレイヤーを探す動きを実装
     /// </summary>
     protected virtual void Search()
     {
-        _velocity = Vector3.zero;
-        _actionTime = 2.0f;
+        Velocity = Vector3.zero;
+        Action_time = 2.0f;
     }
-
-
 
     // *** スキルに関わるメソッド ***
     /// <summary>
-    /// 引数に"moveSkill"か"activeSkill"を指定し、非戦闘時のスキル発動を判定します。
+    /// 引数に"move_skill"か"active_skill"を指定し、発動判定を行使します。
     /// </summary>
-    private void UseOrdinarySkill(List<EnemyActiveSkill> skillList)
+    private void UseSkill(List<EnemyActiveSkill> list, SkillType type)
     {
-        for (int i = 0; i < skillList.Count; i++)
+        SkillType exclusion; // 判定から除外するスキル
+        if (type == SkillType.battle)
         {
-            if (skillList[i].Type != SkillType.battle) // 戦闘時以外に使用できるスキルの判定
+            exclusion = SkillType.ordinary;
+        }
+        else
+        {
+            exclusion = SkillType.battle;
+        }
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i].Type != exclusion)
             {
-                if (skillList[i].JudgeOrdinary) // 確率の判定
+                if (list[i].Judge(type))
                 {
-                    if (skillList[i].Skill.TrySkill()) // 使用可能かどうかの判定
+                    if (list[i].Skill.TrySkill())
                     {
-                        skillList[i].Skill.SkillContent();
+                        list[i].Skill.SkillContent();
+                        break;
+                    }
+                    else if (isCharge)
+                    {
                         break;
                     }
                 }
@@ -225,27 +200,30 @@ class Enemy : Character
         }
     }
 
-
     protected override void SetActiveSkill()
     {
-        for (int i = 0; i < activeSkill.Count; i++)
+        for (int i = 0; i < active_skill.Count; i++)
         {
-            activeSkill[i].Skill.SetSkill(gameObject);
+            active_skill[i].Skill.SetSkill(gameObject);
+            if (active_skill[i].Skill.Range * 0.8f > atk_distance)
+            {
+                atk_distance = active_skill[i].Skill.Range * 0.8f;
+            }
         }
 
-        for (int i = 0; i < moveSkill.Count; i++)
+        for (int i = 0; i < move_skill.Count; i++)
         {
-            moveSkill[i].Skill.SetSkill(gameObject);
+            move_skill[i].Skill.SetSkill(gameObject);
         }
     }
 
 
     protected override void SetPassiveSkill()
     {
-        for (int i = 0; i < passiveSkill.Count; i++)
+        for (int i = 0; i < passive_skill.Count; i++)
         {
-            passiveSkill[i].SetSkill(gameObject);
-            passiveSkill[i].SkillContent();
+            passive_skill[i].SetSkill(gameObject);
+            passive_skill[i].SkillContent();
         }
     }
 
@@ -255,53 +233,42 @@ class Enemy : Character
     /// </summary>
     public override void GetNewSkill(GameObject skill)
     {
-        int n = passiveSkill.Count;
-        passiveSkill.Add(skill.GetComponent<PassiveSkill>());
-        passiveSkill[n].SkillContent();
+        int n = passive_skill.Count;
+        passive_skill.Add(skill.GetComponent<PassiveSkill>());
+        passive_skill[n].SkillContent();
     }
 
 
     /// <summary>
     /// 敵キャラクターに追加でスキルを習得させる(ムーブ・アクティブスキルで使用。確率の引数を2つ指定)
     /// </summary>
-    public void GetNewSkill(GameObject skill, int po, int pb)
+    public void GetNewSkill(GameObject skill, SkillType type, int po, int pb)
     {
-        int n;
+        List<EnemyActiveSkill> list;
         switch (skill.tag)
         {
             case "ActiveSkill":
-                n = activeSkill.Count;
-                activeSkill.Add(new EnemyActiveSkill()
-                { Skill = skill.GetComponent<ActiveSkill>(), P_ordinary = po, P_battle = pb });
-                activeSkill[n].Skill.SetSkill(gameObject);
+                list = active_skill;
                 break;
             case "MoveSkill":
-                n = moveSkill.Count;
-                moveSkill.Add(new EnemyActiveSkill()
-                { Skill = skill.GetComponent<ActiveSkill>(), P_ordinary = po, P_battle = pb });
-                moveSkill[n].Skill.SetSkill(gameObject);
-                break;
-            case "PassiveSkill":
-                GetNewSkill(skill);
+                list = move_skill;
                 break;
             default:
-                Debug.LogError("スキルを登録しているオブジェクトのタグが不正です。");
+                Debug.LogError("オブジェクトのタグが不正です。");
+                list = null;
                 break;
         }
+
+        int n = list.Count;
+        list.Add(new EnemyActiveSkill()
+        { Skill = skill.GetComponent<ActiveSkill>(), Type = type, P_ordinary = po, P_battle = pb });
+        list[n].Skill.SetSkill(gameObject);
     }
-
-
-    protected override void DamagedCancel(int n)
-    {
-        activeSkill[n].Skill.DamagedCancel();
-    }
-
-
 
     // *** 戦闘関係メソッド ***
-    public override void Beat(GameObject target)
+    public override void Beat(int exp)
     {
-        _status.LevelUp(1); // 敵が敵を倒すとレベルが1上がります。
+        LevelUp(1); // 敵が敵を倒すとレベルが1上がります。
     }
 
     protected override void DeathCharacter()
@@ -324,17 +291,17 @@ class Enemy : Character
 
 
     /// <summary>
-    /// 視覚・聴覚・魔法感知が発声した場合に呼び出されます。
+    /// 視覚・聴覚・魔法感知が発生した場合に呼び出されます。
     /// </summary>
     /// <param name="target"></param>
-    public override void FoundEnemy(GameObject target)
+    public override void FoundEnemy(GameObject player)
     {
-        _target = target.GetComponent<Character>();
-        _targetTransform = _target.GetComponent<Transform>();
-        _turnSpeed *= 4;
+        target = player.GetComponent<Character>();
+        target_transform = player.GetComponent<Transform>();
+        turn_speed *= 4;
         isFound = true;
-        _actionTime = 0; // 即座に見つけたときの行動ルーチンに移る
-        trackingTime = MaxTrackingTime;
+        Action_time = 0; // 即座に見つけたときの行動ルーチンに移る
+        tracking_time = max_tracking_time;
         Debug.Log(gameObject.name + "がプレイヤーを発見しました！！");
     }
 }

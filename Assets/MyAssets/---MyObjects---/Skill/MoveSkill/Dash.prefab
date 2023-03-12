@@ -45,6 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   information: 
-  freezeTime: 0.6
-  dashSpeed: 2
-  dashTime: 0.4
+  use_sp: 0
+  freeze_time: 0.5
+  charge_time: 0
+  range: 0
+  damaged_cancel: 0
+  dash_speed: 3

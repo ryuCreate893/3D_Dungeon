@@ -4,20 +4,12 @@ using UnityEngine;
 
 class Turn : ActiveSkill
 {
-    private Transform userTransform;
-
-    public override void SetSkill(GameObject character)
-    {
-        base.SetSkill(character);
-        userTransform = user.GetComponent<Transform>();
-    }
-
     public override void SkillContent()
     {
-        user._velocity = Vector3.zero;
+        user.Velocity = Vector3.zero;
         int rnd = Random.Range(-180, 181);
-        user._characterRotation = Quaternion.AngleAxis(rnd, userTransform.up);
-        user._actionTime = freezeTime;
+        user.Character_rot = Quaternion.AngleAxis(rnd, user_transform.up);
+        user.Action_time = freeze_time;
 
         if (rnd < 0)
         {

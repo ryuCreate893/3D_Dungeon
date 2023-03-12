@@ -30,16 +30,9 @@ public class CameraMover : MonoBehaviour
 
     // *** ƒJƒƒ‰‚Ì‰ñ“]‚ğŒˆ’è‚·‚é•Ï” ***
     /// <summary>
-    /// Šî–{‰ñ“]‘¬“x
-    /// </summary>
-    private float rotSpeed = 180;
-    /// <summary>
     /// ‰ñ“]‘¬“x‚Ì”{—¦İ’è
     /// </summary>
-    private float speed = 1;
-
-
-    // *** c²‚Ì‰ñ“]§ŒÀ ***
+    private float speed = 100;
     /// <summary>
     /// ‚’¼•ûŒü‚Ì‰ñ“]‚Ì‘å‚«‚³(0-1)
     /// </summary>
@@ -113,8 +106,8 @@ public class CameraMover : MonoBehaviour
             }
             else
             {
-                float x = Input.GetAxis("Mouse X") * speed; // ¶ˆÚ“®:'-', ‰EˆÚ“®:'+'
-                float y = Input.GetAxis("Mouse Y") * speed * vRotSpeed; // ‰ºˆÚ“®:'-', ãˆÚ“®:'+'
+                float x = Input.GetAxis("Mouse X") * speed * Time.deltaTime;
+                float y = Input.GetAxis("Mouse Y") * speed * vRotSpeed * Time.deltaTime;
 
                 // …•½•ûŒü‚Ì‰ñ“]
                 _pos.RotateAround(pPos, _playerTransform.up, x);

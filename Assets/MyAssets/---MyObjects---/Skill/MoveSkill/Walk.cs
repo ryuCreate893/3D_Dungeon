@@ -4,27 +4,24 @@ using UnityEngine;
 
 class Walk : ActiveSkill
 {
-    private Transform userTransform;
-
-    public override void SetSkill(GameObject character)
-    {
-        base.SetSkill(character);
-        userTransform = user.GetComponent<Transform>();
-    }
-
     public override void SkillContent()
     {
-        Vector3 v3 = userTransform.forward * userStatus.Speed;
-        user._velocity = v3;
-        user._actionTime = freezeTime;
+        user.Action_time = freeze_time;
         Debug.Log(user.gameObject.name + "は前に歩き始めた。");
-        float rnd = Random.Range(0.5f, 1.0f);
-        Invoke("Stop", freezeTime * rnd);
+        StartCoroutine("Walking");
     }
 
-    private void Stop()
+    private IEnumerator Walking()
     {
-        user._velocity = Vector3.zero;
+        Vector3 v3 = user_transform.forward * user_status.Speed;
+        float time = Random.Range(0.5f, 1.0f) * freeze_time;
+        user.Velocity = v3;
+        while (time > 0)
+        {
+            yield return null;
+            time -= Time.deltaTime;
+        }
+        user.Velocity = Vector3.zero;
         Debug.Log(user.gameObject.name + "は立ち止まった。");
     }
 }

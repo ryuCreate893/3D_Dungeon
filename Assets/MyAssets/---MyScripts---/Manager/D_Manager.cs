@@ -2,63 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// ダンジョン内の進行管理を行います。
 class D_Manager : MonoBehaviour
 {
-    [SerializeField, Tooltip("先へ行くための階段などのオブジェクトを登録します。")]
-    private GameObject stair;
-    [SerializeField, Tooltip("S_Managerを登録します。")]
-    private S_Manager scene_manager;
-    [SerializeField]
-    private DungeonData dungeon;
     public static D_Manager gameInstance;
 
-    /// <summary>
-    /// ダンジョンをセットします。
-    /// </summary>
+    [SerializeField, Tooltip("ダンジョンデータを登録")]
+    private DungeonData dungeon;
     public DungeonData Dungeon { get { return dungeon; } set { dungeon = value; } }
 
+
     // *** ダンジョンの階層管理 ***
+    private int floor = 0;
+    private int max_floor = 0;
+    private float limit_time;
     /// <summary>
-    /// 現在の階層
+    /// 同じシーンが連続して登場しないようにするための変数
     /// </summary>
-    public int Floor { get; private set; }
-    /// <summary>
-    /// 最下層
-    /// </summary>
-    private int maxFloor = 0;
-    /// <summary>
-    /// 現在の階層に留まることができる時間
-    /// </summary>
-    private float limitTime;
-    /// <summary>
-    /// 同じフロアが連続して登場しないようにするためにフロア名を記憶する変数
-    /// </summary>
-    private string floorName;
+    private string scene_name;
 
 
     // *** 敵のスポーン管理 ***
+    private int max_enemy;
+    private float spawn_time;
+    public int Enemies { get; set; }
     /// <summary>
-    /// 敵がスポーンする時間間隔
+    /// スポーンストッパー(trueの場合はspawn_timeを経過させない)
     /// </summary>
-    private float maxSpawnTime;
-    /// <summary>
-    /// スポーンタイマー
-    /// </summary>
-    private float spawnTime;
-    /// <summary>
-    /// スポーンストッパー(trueの場合はspawnTimeを経過させない)
-    /// </summary>
-    private bool stop = false;
+    private bool spawn_stop = false;
 
-
+    private GameObject stair;
 
     private void Awake()
     {
         if (gameInstance == null)
         {
             gameInstance = this;
-            maxFloor = Dungeon.Depth.Length;
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -69,48 +47,52 @@ class D_Manager : MonoBehaviour
 
     private void Start()
     {
-        maxSpawnTime = Dungeon.Depth[Floor].SpawnTime;
-        spawnTime = maxSpawnTime;
-        limitTime = Dungeon.Depth[Floor].LimitTime;
-        int rnd = Random.Range(0, Dungeon.Depth[Floor].FloorPattern.Length);
-        floorName = Dungeon.Depth[Floor].FloorPattern[rnd];
+        stair = Dungeon.Stair;
     }
 
     private void Update()
     {
-        if (spawnTime != -1)
+        // 敵の出現管理
+        if (spawn_time != -1)
         {
-            spawnTime -= Time.deltaTime;
-            if (spawnTime <= 0)
+            spawn_time -= Time.deltaTime;
+            if (spawn_time <= 0)
             {
-                SelectSpawn(1, Dungeon.Depth[Floor].Enemy);
-                spawnTime = maxSpawnTime;
+                SetMapEnemy(Dungeon.Depth[floor].Enemy, 1);
+                spawn_time = (float)Dungeon.Depth[floor].Spawn_time;
             }
         }
+
+        // フロアの時間制限管理
     }
 
     /// <summary>
-    /// フロアを移動します。("Stair" オブジェクトから呼び出し)
+    /// フロアを移動します。("Stair"より呼び出し)
     /// </summary>
     public void Lift()
     {
-        Floor++;
-        if (Floor == maxFloor)
+        Debug.Log("フロアを移動します。");
+        floor++;
+        int _floor = floor + 1;
+        string text = dungeon.Dungeon_name + "\n" + _floor + "F";
+        if (floor == max_floor)
         {
-            S_Manager.SetLastMainScene(Dungeon.LastScene);
+            scene_name = dungeon.Last_floor;
         }
         else
         {
-            int n = Dungeon.Depth[Floor].FloorPattern.Length;
+            int n = dungeon.Depth[floor].Pattern.Length;
             int rnd = Random.Range(0, n);
-            if (Dungeon.Depth[Floor].FloorPattern[rnd] == floorName)
+            if (dungeon.Depth[floor].Pattern[rnd] == scene_name)
             {
                 rnd++;
                 if (rnd == n) rnd = 0;
             }
-            floorName = Dungeon.Depth[Floor].FloorPattern[rnd];
-            scene_manager.SetNewMainScene(floorName);
+            scene_name = dungeon.Depth[floor].Pattern[rnd];
         }
+        StartCoroutine(S_Manager.sceneInstance.SetNewMainScene(scene_name, text));
+        Player.playerInstance.ResetPlayerStatusUI();
+        Debug.Log("フロアを移動しました。→[" + floor + "F]");
     }
 
     /// <summary>
@@ -118,64 +100,123 @@ class D_Manager : MonoBehaviour
     /// </summary>
     public void SetFloor()
     {
-        SelectSpawn(Dungeon.Depth[Floor].MapItem, Dungeon.Depth[Floor].Item);
-        SelectSpawn(Dungeon.Depth[Floor].MapTrap, Dungeon.Depth[Floor].Trap);
-        SelectSpawn(Dungeon.Depth[Floor].MapEnemy, Dungeon.Depth[Floor].Enemy);
+        // 最深部以外で行われる初期処理
+        if (floor != max_floor)
+        {
+            // 各変数のセット
+            max_enemy = Dungeon.Depth[floor].Max_enemy;
+            spawn_time = (float)Dungeon.Depth[floor].Spawn_time;
+            limit_time = (float)Dungeon.Depth[floor].Limit_time;
+
+            // オブジェクト配置
+            SetMapGimmick(Dungeon.Depth[floor].Item, Dungeon.Depth[floor].OnItems);
+            SetMapGimmick(Dungeon.Depth[floor].Trap, Dungeon.Depth[floor].OnTraps);
+            SetMapEnemy(Dungeon.Depth[floor].Enemy, Dungeon.Depth[floor].OnEnemies);
+
+            // Stairの設置
+            if (Stair.stairInstance != null)
+            {
+                GameObject _stair = Instantiate(stair);
+                SetTransform(_stair);
+            }
+        }
+        else
+        {
+            max_enemy = Dungeon.Depth[floor].Max_enemy;
+            spawn_time = -1;
+            limit_time = -1;
+        }
     }
 
-    private void SelectSpawn(int n, SpawnData[] data)
+    private void SetMapGimmick(SpawnData[] data, int n)
     {
-        bool check = false;
         for (int i = 0; i < n; i++)
         {
+            bool isSpawn = false;
+            GameObject obj = null;
             for (int j = 0; j < data.Length; j++)
             {
                 if (Random.Range(0, 101) <= data[j].Probability)
                 {
-                    Spawn(data[j].Kind);
-                    check = true;
+                    obj = Instantiate(data[j].Kind);
+                    isSpawn = true;
                     break;
                 }
-                if (!check)
+            }
+
+            // 確率を参照したがすべてスルーした場合
+            if (!isSpawn)
+            {
+                obj = Instantiate(data[0].Kind);
+            }
+            SetTransform(obj);
+        }
+    }
+
+    private void SetMapEnemy(SpawnData[] data, int n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            if (Enemies == max_enemy)
+            {
+                break;
+            }
+            else
+            {
+                bool isSpawn = false;
+                GameObject obj = null;
+
+                for (int j = 0; j < data.Length; j++)
                 {
-                    int rnd = Random.Range(0, data.Length);
-                    Spawn(data[rnd].Kind);
+                    if (Random.Range(0, 101) <= data[j].Probability)
+                    {
+                        obj = Instantiate(data[j].Kind);
+                        isSpawn = true;
+                        break;
+                    }
                 }
+                // 確率を参照したがすべてスルーした場合
+                if (!isSpawn)
+                {
+                    obj = Instantiate(data[0].Kind);
+                }
+                SetTransform(obj);
+                int level = Random.Range(Dungeon.Depth[floor].Min_spawn_level, Dungeon.Depth[floor].Max_spawn_level + 1);
+                Character method = obj.GetComponent<Character>();
+                method.SetCharacter();
+                if (level > 0)
+                {
+                    method.LevelUp(level);
+                }
+                else if(level < 0)
+                {
+                    method.LevelDown(level);
+                }
+                Enemies++;
             }
         }
     }
 
-    private void Spawn(GameObject spawn)
+    private void SetTransform(GameObject obj)
     {
-        float x = Random.Range(-5, 5);
-        float z = Random.Range(-5, 5);
-        Vector3 v3 = new Vector3(x, 0.5f, z);
-        GameObject obj = Instantiate(spawn);
+        bool isOverlap = true;
+        float r = 3.0f;
+        Vector3 v3 = Vector3.zero;
+
+        while (isOverlap)
+        {
+            float x = Random.Range(-5, 5);
+            float z = Random.Range(-5, 5);
+            v3 = new Vector3(x, 0.5f, z);
+
+            if (Physics.OverlapSphere(v3, r).Length == 1) // 地面以外に触れていない場合
+            {
+                isOverlap = false;
+            }
+        }
+
         obj.transform.position = v3;
-    }
-
-    /// <summary>
-    /// フロアを移動します。("Stair" オブジェクトから呼び出し)
-    /// </summary>
-    protected virtual void CallDungeonFloor() { }
-
-    [System.Serializable]
-    [Tooltip("アイテム, トラップ, 敵の種類と発生確率を設定します。\n'SpawnCheck'で確率 の判定を行うこともできます。")]
-    public class SpawnProbability
-    {
-        [Tooltip("オブジェクトの種類")]
-        private GameObject kind;
-        [Tooltip("オブジェクトが出現する確率")]
-        [Range(0, 100)]
-        private int probability;
-
-        public GameObject Kind { get { return kind; } set { kind = value; } }
-
-        public int Probability { get { return probability; } set { probability = value; } }
-
-        /// <summary>
-        /// スポーン確率を判定して、trueの場合該当の敵をスポーンさせる
-        /// </summary>
-        public bool SpawnCheck { get { return Random.Range(1, 101) <= probability; } }
+        float rot = Random.Range(-360, 360);
+        obj.transform.rotation = Quaternion.Euler(0, rot, 0);
     }
 }

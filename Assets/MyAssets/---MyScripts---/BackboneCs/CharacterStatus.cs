@@ -7,7 +7,8 @@ public class CharacterStatus
 {
     [Header("基礎ステータス")]
     [SerializeField, Tooltip("基礎ステータスの設定")]
-    private BasicStatus Basic;
+    private BasicStatus basic;
+    public BasicStatus Basic { get { return basic; } }
 
     [Header("内部ステータス")]
     [SerializeField, Tooltip("体力の成長度[ 0 - 100 ](%)")]
@@ -77,70 +78,4 @@ public class CharacterStatus
     public int AddAtk { get; set; } = 0;
     public int AddDef { get; set; } = 0;
     public int AddSpeed { get; set; } = 0;
-
-    /// <summary>
-    /// 出現時の能力を設定します。
-    /// </summary>
-    public void SpawnStatus(int n)
-    {
-        Level = Basic.Level;
-        FloatMaxHp = Basic.MaxHp;
-        FloatMaxSp = Basic.MaxSp;
-        FloatAtk = Basic.Atk;
-        FloatExp = Basic.Exp;
-
-        if (n > 0)
-        {
-            LevelUp(n);
-        }
-        else if (n < 0)
-        {
-            LevelDown(n);
-        }
-        else
-        {
-            SetStatus();
-        }
-    }
-
-    public void LevelUp(int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            level++;
-            FloatMaxHp *= ((GrowMaxHp + 100) / 100);
-            FloatMaxSp *= ((GrowMaxSp + 100) / 100);
-            FloatAtk *= ((GrowAtk + 100) / 100);
-            FloatExp *= ((GrowExp + 100) / 100);
-        }
-        SetStatus();
-    }
-
-    public void LevelDown(int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            if (level > 0)
-            {
-                level--;
-                FloatMaxHp /= ((GrowMaxHp + 100) / 100);
-                FloatMaxSp /= ((GrowMaxSp + 100) / 100);
-                FloatAtk /= ((GrowAtk + 100) / 100);
-                FloatExp /= ((GrowExp + 100) / 100);
-            }
-        }
-        SetStatus();
-    }
-
-    public void SetStatus()
-    {
-        MaxHp = (int)FloatMaxHp + AddHp;
-        Hp = MaxHp;
-        MaxSp = (int)FloatMaxSp + AddSp;
-        Sp = MaxSp;
-        Atk = (int)FloatAtk + AddAtk;
-        Def = Basic.Def + AddDef;
-        Speed = Basic.Speed + AddSpeed;
-        Exp = (int)FloatExp;
-    }
 }

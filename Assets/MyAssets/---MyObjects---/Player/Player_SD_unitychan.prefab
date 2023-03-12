@@ -1359,12 +1359,12 @@ MonoBehaviour:
   _transform: {fileID: 5807474449562257158}
   _rigidbody: {fileID: 6081507866512664449}
   _animator: {fileID: 5807474449562257159}
-  _sound: {fileID: 812883997701264513}
-  _magic: {fileID: 5541999860786035144}
-  _status:
-    Basic: {fileID: 11400000, guid: 2c2e7a4a8d126b14a90a4b1ef58e5db8, type: 2}
-    growMaxHp: 3
-    growMaxSp: 2
+  sound: {fileID: 0}
+  magic: {fileID: 0}
+  status:
+    basic: {fileID: 11400000, guid: 2c2e7a4a8d126b14a90a4b1ef58e5db8, type: 2}
+    growMaxHp: 5
+    growMaxSp: 3
     growAtk: 2
     growExp: 0
     level: 0
@@ -1376,15 +1376,9 @@ MonoBehaviour:
     def: 0
     speed: 0
     exp: 0
-  activeSkill: []
-  moveSkill:
-  - skill: {fileID: 1109702625111171519, guid: 8e1d8e1fb7c2f5544848ff404be61ee5, type: 3}
-    key: Jump
-    isGetAxis: 1
-  - skill: {fileID: 8159273810749472275, guid: f32cb1894dbbfcd4aa050aa4339042c4, type: 3}
-    key: Dash
-    isGetAxis: 0
-  passiveSkill: []
+  active_skill: []
+  move_skill: []
+  passive_skill: []
 --- !u!95 &5807474449562257159
 Animator:
   serializedVersion: 4

@@ -4,7 +4,7 @@ using UnityEngine;
 
 [Tooltip("キャラクターの基礎能力をセットします。")]
 [CreateAssetMenu(menuName = "Create BasicStatus")]
-class BasicStatus : ScriptableObject
+public class BasicStatus : ScriptableObject
 {
     [SerializeField]
     [Tooltip("キャラクターの基礎レベル")]
