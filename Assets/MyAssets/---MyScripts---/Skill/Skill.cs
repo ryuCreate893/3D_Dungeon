@@ -20,6 +20,10 @@ abstract class Skill : MonoBehaviour
     /// スキルを所持しているキャラクターの位置情報
     /// </summary>
     protected Transform user_transform;
+    /// <summary>
+    /// スキルを所持しているキャラクターのアニメーション設定
+    /// </summary>
+    protected Animator user_animation;
 
 
     /// <summary>
@@ -30,6 +34,7 @@ abstract class Skill : MonoBehaviour
         user = character.GetComponent<Character>();
         user_status = user.Status;
         user_transform = user.GetComponent<Transform>();
+        user_animation = user.GetComponent<Animator>();
     }
 
     /// <summary>
