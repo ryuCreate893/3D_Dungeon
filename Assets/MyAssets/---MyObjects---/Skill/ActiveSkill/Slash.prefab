@@ -44,5 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fa3dc70b31b4644281cb986e7f8d2c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  information: 
-  freezeTime: 0
+  information: "\u6575\u3092\u6A2A\u306B\u5207\u308A\u3064\u3051\u307E\u3059\u3002"
+  use_sp: 0
+  freeze_time: 0.3
+  charge_time: 0
+  range: 1
+  damaged_cancel: 0
+  slash: {fileID: 7822054763455033944, guid: 6e8c155d786102149b36f427eca7600b, type: 3}

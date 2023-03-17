@@ -147,7 +147,7 @@ class Enemy : Character
     {
         Action_cancel?.Invoke();
         target = null;
-        target_transform = null;
+        Target_transform = null;
         isFound = false;
         turn_speed /= 4;
         Character_rot = _transform.rotation;
@@ -297,7 +297,7 @@ class Enemy : Character
     public override void FoundEnemy(GameObject player)
     {
         target = player.GetComponent<Character>();
-        target_transform = player.GetComponent<Transform>();
+        Target_transform = player.GetComponent<Transform>();
         turn_speed *= 4;
         isFound = true;
         Action_time = 0; // 即座に見つけたときの行動ルーチンに移る

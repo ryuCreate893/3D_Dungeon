@@ -26,7 +26,7 @@ abstract class ActiveSkill : Skill
     /// <summary>
     /// スキルの発動チェックと発動を行います。チャージが必要な場合は専用メソッドをキャラクターのデリゲートに保有させます。
     /// </summary>
-    public bool TrySkill()
+    public virtual bool TrySkill()
     {
         // SP残量のチェック
         if (use_sp > user.Status.Sp)
@@ -64,7 +64,7 @@ abstract class ActiveSkill : Skill
     /// <summary>
     /// チャージ中のみ呼び出す「スキル発動」専用メソッド
     /// </summary>
-    public void Action()
+    public virtual void Action()
     {
         if (TrySkill())
         {
@@ -79,7 +79,7 @@ abstract class ActiveSkill : Skill
     /// <summary>
     /// チャージ中のみ呼び出す「スキルキャンセル」専用メソッド
     /// </summary>
-    public void ChargeCancel()
+    public virtual void ChargeCancel()
     {
         user.isCharge = false;
         user.Action -= Action;

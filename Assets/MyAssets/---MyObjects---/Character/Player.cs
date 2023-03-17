@@ -59,6 +59,7 @@ class Player : Character
         if (playerInstance == null)
         {
             playerInstance = this;
+            turn_speed *= 3;
             DontDestroyOnLoad(gameObject);
         }
         else

@@ -1376,7 +1376,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 2c2e7a4a8d126b14a90a4b1ef58e5db8, type: 2}
     - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
       propertyPath: move_skill.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
       propertyPath: move_skill.Array.data[0].key
@@ -1387,6 +1387,10 @@ PrefabInstance:
       value: Dash
       objectReference: {fileID: 0}
     - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
+      propertyPath: move_skill.Array.data[2].key
+      value: Attack
+      objectReference: {fileID: 0}
+    - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
       propertyPath: move_skill.Array.data[0].skill
       value: 
       objectReference: {fileID: 1109702625111171519, guid: 8e1d8e1fb7c2f5544848ff404be61ee5, type: 3}
@@ -1395,8 +1399,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8159273810749472275, guid: f32cb1894dbbfcd4aa050aa4339042c4, type: 3}
     - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
+      propertyPath: move_skill.Array.data[2].skill
+      value: 
+      objectReference: {fileID: -2646721608111401639, guid: 0152fd5c1c5a33b4da606bfb405d21c6, type: 3}
+    - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
       propertyPath: move_skill.Array.data[0].isGetAxis
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7938410519790622711, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}
+      propertyPath: move_skill.Array.data[2].isGetAxis
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 08afe339897f64b4c96f7fd516ffaf6b, type: 3}

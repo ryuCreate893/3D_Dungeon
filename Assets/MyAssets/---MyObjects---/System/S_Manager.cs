@@ -177,6 +177,7 @@ class S_Manager : MonoBehaviour
         // フェードイン
         StartCoroutine(UI_Manager.UIInstance.Sf.TextFadeIn(0.5f));
         yield return StartCoroutine(UI_Manager.UIInstance.Sf.ScreenFadeIn(0.5f));
+        GetMainCamera();
 
         Operate = false;
         transition = false;

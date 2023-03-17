@@ -34,7 +34,7 @@ abstract class Character : MonoBehaviour
 
     // *** 標的のコンポーネントを保有する変数 ***
     protected Character target;
-    protected Transform target_transform;
+    public Transform Target_transform { get; set; }
     /// <summary>
     /// 自分→標的の方向ベクトル
     /// </summary>
@@ -147,11 +147,11 @@ abstract class Character : MonoBehaviour
     /// <returns></returns>
     public Vector3 GetTargetPosition(float range)
     {
-        if (target_transform = null)
+        if (Target_transform = null)
         {
             return _transform.forward * range * 0.99f;
         }
-        return target_transform.position;
+        return Target_transform.position;
     }
 
     /// <summary>
@@ -160,9 +160,9 @@ abstract class Character : MonoBehaviour
     /// 
     protected void FocusTarget()
     {
-        if (target_transform != null)
+        if (Target_transform != null)
         {
-            Focus = target_transform.position - _transform.position;
+            Focus = Target_transform.position - _transform.position;
         }
         else
         {
@@ -233,7 +233,7 @@ abstract class Character : MonoBehaviour
 
     public void LevelUp(int n)
     {
-        for(int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
             status.Level++;
             status.FloatMaxHp *= ((status.GrowMaxHp + 100) / 100);
@@ -246,7 +246,7 @@ abstract class Character : MonoBehaviour
 
     public void LevelDown(int n)
     {
-        for(int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
             if (status.Level > 1)
             {
