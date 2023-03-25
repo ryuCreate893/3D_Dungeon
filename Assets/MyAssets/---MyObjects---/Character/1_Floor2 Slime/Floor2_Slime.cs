@@ -8,6 +8,6 @@ class Floor2_Slime : Enemy
     {
         base.Start();
         lose_distance = 20.0f;
-        FoundEnemy(Player.playerInstance.gameObject);
+        Found(Player.playerInstance.gameObject);
     }
 }

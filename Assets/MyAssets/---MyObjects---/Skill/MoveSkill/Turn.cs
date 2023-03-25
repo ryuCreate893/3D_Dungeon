@@ -6,9 +6,9 @@ class Turn : ActiveSkill
 {
     public override void SkillContent()
     {
-        user.Velocity = Vector3.zero;
+        user.My_vel = Vector3.zero;
         int rnd = Random.Range(-180, 181);
-        user.Character_rot = Quaternion.AngleAxis(rnd, user_transform.up);
+        user.My_rot = Quaternion.AngleAxis(rnd, user_transform.up);
         user.Action_time = freeze_time;
 
         if (rnd < 0)

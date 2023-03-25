@@ -15,11 +15,9 @@ abstract class ActiveSkill : Skill
     protected float range;
     [SerializeField, Tooltip("ダメージを受けたときにチャージを解除するか")]
     protected bool damaged_cancel;
+    [SerializeField, Tooltip("障害物を貫通するか")]
+    private bool isObstaclesThrough;
 
-    /// <summary>
-    /// スキルをチャージしている状態かどうか判定
-    /// </summary>
-    public bool Charging { get; set; } = false;
     public float Range { get { return range; } }
 
 
@@ -36,14 +34,33 @@ abstract class ActiveSkill : Skill
         }
 
         // 射程のチェック
-        if (range > 0 && user.Focus.magnitude > range)
+        if (range > 0 && user.target_transform != null)
         {
-            Debug.Log(gameObject.name + "は射程が足りなかった！");
-            return false;
+            if (user.Focus.magnitude > range)
+            {
+                Debug.Log(gameObject.name + "は射程が足りなかった！");
+                return false;
+            }
+
+            // 障害物のチェック
+            else if (!isObstaclesThrough)
+            {
+                Ray ray = new Ray(user_transform.position, user.Focus);
+                float f = Mathf.Min((user.target_transform.position - user_transform.position).magnitude, range);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit, f))
+                {
+                    if (hit.collider.CompareTag("Obstacle"))
+                    {
+                        Debug.Log(gameObject.name + "は壁に阻まれて発動できない！");
+                        return false;
+                    }
+                }
+            }
         }
 
         // チャージ状態のチェック
-        else if (charge_time > 0 && !Charging)
+        if (charge_time > 0 && !user.isCharge)
         {
             user.isCharge = true;
             user.Action_time = charge_time;

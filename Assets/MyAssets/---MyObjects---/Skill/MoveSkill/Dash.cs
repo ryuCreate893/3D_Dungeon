@@ -19,7 +19,7 @@ class Dash : ActiveSkill
     public override void SkillContent()
     {
         Vector3 v3 = user_transform.forward * user_status.Speed * dash_speed;
-        user.Velocity = v3;
+        user.My_vel = v3;
         user_rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
         Invoke("ReturnFreeze", freeze_time);
     }

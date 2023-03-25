@@ -12,13 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd13d103e26ee2046b09e78c178f2213, type: 3}
   m_Name: Player_SD_unitychan
   m_EditorClassIdentifier: 
-  level: 1
-  maxHp: 20
-  maxSp: 10
-  atk: 5
-  def: 0
-  speed: 2
-  exp: 0
-  vision: 1
+  base_level: 1
+  base_maxHp: 20
+  base_maxSp: 10
+  base_atk: 5
+  base_def: 3
+  base_speed: 2
+  base_exp: 50
+  growMaxHp: 3
+  growMaxSp: 2
+  growAtk: 2
+  growExp: 10
+  vision: 0
   aural: 0
   magic: 0

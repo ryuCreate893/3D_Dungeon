@@ -59,12 +59,12 @@ public class PlayerStatusUI : MonoBehaviour
     /// </summary>
     public void Burn(int value)
     {
-        if (slider.value > value)
-        {
-            slider.value = value;
-        }
         delta -= value;
-        textL.text = value.ToString();
+        if (delta < 0)
+        {
+            slider.value += delta;
+        }
+        textL.text = slider.value.ToString();
     }
 
     private void Increase()

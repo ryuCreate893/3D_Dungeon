@@ -15,13 +15,13 @@ class Walk : ActiveSkill
     {
         Vector3 v3 = user_transform.forward * user_status.Speed;
         float time = Random.Range(0.5f, 1.0f) * freeze_time;
-        user.Velocity = v3;
+        user.My_vel = v3;
         while (time > 0)
         {
             yield return null;
             time -= Time.deltaTime;
         }
-        user.Velocity = Vector3.zero;
+        user.My_vel = Vector3.zero;
         Debug.Log(user.gameObject.name + "ÇÕóßÇøé~Ç‹Ç¡ÇΩÅB");
     }
 }

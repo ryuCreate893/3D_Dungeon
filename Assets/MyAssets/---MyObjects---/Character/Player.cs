@@ -32,7 +32,7 @@ class Player : Character
     /// <summary>
     /// 合計移動アクション回数(地上 + 空中で動ける回数)
     /// </summary>
-    private int max_action_count = 1;
+    public int Max_action_count { private get; set; } = 1;
     /// <summary>
     /// 残り移動アクション回数
     /// </summary>
@@ -40,7 +40,6 @@ class Player : Character
 
     // *** 経験値情報 ***
     public int Exp { get; set; } = 0; // 現在の経験値(必要な経験値 = "status.Exp")
-    private float next_max_exp = 1.1f; // レベルアップ時、次に必要な経験値を計算する
 
     // *** コライダー情報 ***
     /// <summary>
@@ -84,9 +83,9 @@ class Player : Character
         if (Action_time > 0)
         {
             Action_time -= Time.deltaTime;
-            if (isGetAxis) SetVelocity();
+            if (isGetAxis) SetMy_vel();
         }
-        else
+        else if (Time.timeScale != 0)
         {
             isGetAxis = true;
 
@@ -108,51 +107,57 @@ class Player : Character
         // 進行方向の決定
         if (isGetAxis)
         {
-            SetVelocity();
+            SetMy_vel();
 
             // y軸を軸としたカメラの回転を取得(Player専用)
             Quaternion horizontal_rot = Quaternion.AngleAxis(Camera.main.transform.eulerAngles.y, Vector3.up);
 
             // カメラの方向を考慮したキャラクターの方向ベクトルを作成
-            Velocity = horizontal_rot * Velocity;
+            My_vel = horizontal_rot * My_vel;
 
             // 回転が起きる場合はチャージ中のスキル解除・y軸を軸としたキャラクターの回転を取得
-            if (Velocity.magnitude > 0.1f)
+            if (My_vel.magnitude > 0.1f)
             {
                 Action_cancel?.Invoke();
-                Character_rot = Quaternion.LookRotation(Velocity, Vector3.up);
+                My_rot = Quaternion.LookRotation(My_vel, Vector3.up);
             }
 
             if (!isSlow)
             {
-                Velocity *= status.Speed;
+                My_vel *= status.Speed;
             }
         }
 
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, Character_rot, turn_speed * Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, My_rot, turn_speed * Time.deltaTime);
     }
 
-    private void SetVelocity()
+    private void SetMy_vel()
     {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
-        Velocity = new Vector3(horizontal, 0, vertical).normalized;
-        // スキル未使用かつ 地面にいる
+        My_vel = new Vector3(horizontal, 0, vertical).normalized;
+
+        // スキル未使用、地面にいる
         if (Action_time <= 0 && isGround)
         {
             // 移動中の場合
-            if (Velocity.magnitude > 0.1f)
+            if (My_vel.magnitude > 0.1f)
             {
-                _animator.SetBool("idle", false);
-                _animator.SetBool("slowmove", isSlow);
-                _animator.SetBool("running", !isSlow);
+                my_animator.SetBool("idle", false);
+                my_animator.SetBool("slowmove", isSlow);
+                my_animator.SetBool("running", !isSlow);
             }
             // 停止中の場合
             else
             {
-                _animator.SetBool("idle", true);
+                my_animator.SetBool("idle", true);
             }
         }
+    }
+
+    private void FixedUpdate()
+    {
+        my_rigidbody.velocity = new Vector3(My_vel.x, my_rigidbody.velocity.y, My_vel.z);
     }
 
     // *** スキルの発動判定に関わるメソッド ***
@@ -206,10 +211,6 @@ class Player : Character
         }
     }
 
-
-    public override void FoundEnemy(GameObject target) { }
-    protected override void LoseSightEnemy() { }
-
     public override void Beat(int get_exp)
     {
         int exp_value = Exp; // UIセット用
@@ -217,10 +218,7 @@ class Player : Character
         while (status.Exp <= Exp)
         {
             Exp -= status.Exp;
-            status.FloatExp *= next_max_exp;
-            status.Exp = (int)status.FloatExp;
-
-            LevelUp(1);
+            LevelUp();
             SetPlayerStatusUI_Max();
             UI_Manager.UIInstance.Ps.Hp.Cure(status.MaxHp);
             UI_Manager.UIInstance.Ps.Sp.Cure(status.MaxSp);
@@ -240,6 +238,16 @@ class Player : Character
     {
         Time.timeScale = 0;
         S_Manager.sceneInstance.Operate = true;
+        Debug.Log("死");
+    }
+
+    protected override void CharacterDamaged(int damage)
+    {
+        base.CharacterDamaged(damage);
+        if(status.Hp > 0)
+        {
+            UI_Manager.UIInstance.Ps.Hp.Burn(damage);
+        }
     }
 
     private void OnCollisionStay(Collision collision)
@@ -247,8 +255,8 @@ class Player : Character
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGround = true;
-            action_count = max_action_count;
-            _animator.SetBool("isground", true);
+            action_count = Max_action_count;
+            my_animator.SetBool("isground", true);
         }
     }
 
@@ -258,12 +266,12 @@ class Player : Character
         {
             isGround = false;
             action_count--;
-            _animator.SetBool("isground", false);
+            my_animator.SetBool("isground", false);
         }
     }
 
     /// <summary>
-    /// UIの再設定を行います(D_Manager.Liftから呼び出し)
+    /// UIの再設定を行います(D_Manager.Lift時に呼び出し)
     /// </summary>
     public void ResetPlayerStatusUI()
     {

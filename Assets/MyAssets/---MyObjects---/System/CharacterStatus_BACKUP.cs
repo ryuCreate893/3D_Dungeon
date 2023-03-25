@@ -1,9 +1,10 @@
+/*
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class CharacterStatus
+public class Character_Status
 {
     [Header("基礎ステータス")]
     [SerializeField, Tooltip("基礎ステータスの設定")]
@@ -79,3 +80,4 @@ public class CharacterStatus
     public int AddDef { get; set; } = 0;
     public int AddSpeed { get; set; } = 0;
 }
+*/

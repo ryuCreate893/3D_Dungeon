@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: b6d40686d8e3b1a4dbcdabf5785b5a3a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - hit_mesh: {fileID: 7093361556925444893, guid: 0ba366817b7ae664e830049d01953333, type: 3}
+  - hit_collider: {fileID: 4987543689132358832, guid: c67dc1a4174b2b842a2bb452b3fe933d, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

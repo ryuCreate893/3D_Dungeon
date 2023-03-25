@@ -183,14 +183,19 @@ class D_Manager : MonoBehaviour
                 SetTransform(obj);
                 int level = Random.Range(Dungeon.Depth[floor].Min_spawn_level, Dungeon.Depth[floor].Max_spawn_level + 1);
                 Character method = obj.GetComponent<Character>();
-                method.SetCharacter();
                 if (level > 0)
                 {
-                    method.LevelUp(level);
+                    for(int k = 0; k < level; k++)
+                    {
+                        method.LevelUp();
+                    }
                 }
                 else if(level < 0)
                 {
-                    method.LevelDown(level);
+                    for (int k = 0; k < level; k++)
+                    {
+                        method.LevelDown();
+                    }
                 }
                 Enemies++;
             }

@@ -1,9 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 class Enemy : Character
 {
+    [SerializeField]
+    private NavMeshAgent nav_mesh_agent;
+
     [Header("スキル情報")]
     [SerializeField, Tooltip("アクティブスキルの一覧と発動確率")]
     private List<EnemyActiveSkill> active_skill;
@@ -12,15 +16,23 @@ class Enemy : Character
     [SerializeField, Tooltip("パッシブスキルの一覧")]
     private List<PassiveSkill> passive_skill;
 
+    /// <summary>
+    /// 敵がプレイヤーを知覚しているかどうかを判定(true=気づいている)
+    /// </summary>
+    private bool isFound = false;
 
+    // *** isFound = false時に使用する変数 ***
     /// <summary>
     /// 敵対していない状態におけるムーブスキルの発動確率(基本90%)
     /// </summary>
-    public int move_judge { get; protected set; } = 90;
+    public int move_judge { get; private set; } = 90;
+
+
+    // *** isFound = true時に使用する変数 ***
     /// <summary>
     /// プレイヤーを攻撃し始める距離
     /// </summary>
-    public float atk_distance { get; protected set; } = 0;
+    public float atk_distance { get; private set; } = 0;
     /// <summary>
     /// プレイヤーを見失う距離
     /// </summary>
@@ -33,15 +45,14 @@ class Enemy : Character
     /// プレイヤーを追跡する時間の経過状況
     /// </summary>
     private float tracking_time = 0;
-    /// <summary>
-    /// 敵がプレイヤーを知覚しているかどうかを判定(true=気づいている)
-    /// </summary>
-    private bool isFound = false;
 
-    private void Awake()
+    protected override void Start()
     {
-        turn_speed /= 4; // プレイヤーを知覚していない場合は回転をゆっくりに
+        base.Start();
+        turn_speed /= 4;
+        nav_mesh_agent.isStopped = true;
     }
+
 
     protected virtual void Update()
     {
@@ -51,18 +62,16 @@ class Enemy : Character
             if (tracking_time > 0)
             {
                 tracking_time -= Time.deltaTime;
-                SetFocusAngle();
             }
             else
             {
                 if (Focus.magnitude <= lose_distance)
                 {
                     tracking_time = max_tracking_time;
-                    SetFocusAngle();
                 }
                 else
                 {
-                    LoseSightEnemy();
+                    LoseSight(); // プレイヤーを見失う
                 }
             }
         }
@@ -71,62 +80,83 @@ class Enemy : Character
         if (Action_time > 0)
         {
             Action_time -= Time.deltaTime;
-        }
-        else
-        {
-            if (isFound)
-            {
-                ChangeFoundRooteen();
-            }
-            else
-            {
-                ChangeRooteen();
-            }
-        }
+            nav_mesh_agent.isStopped = true;
 
-        _transform.rotation = Quaternion.RotateTowards(_transform.rotation, Character_rot, turn_speed * Time.deltaTime);
+            SetFocusAngle();
+            my_transform.rotation = Quaternion.RotateTowards(my_transform.rotation, My_rot, turn_speed * Time.deltaTime);
+        }
+        else if (isFound) // アクション時間経過, 発見済
+        {
+            ChangeFoundRooteen();
+        }
+        else // アクション時間経過, 未発見
+        {
+            ChangeRooteen();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (nav_mesh_agent.isStopped)
+        {
+            my_rigidbody.velocity = new Vector3(My_vel.x, my_rigidbody.velocity.y, My_vel.z);
+        }
     }
 
     // *** Update内で呼び出すメソッド ***
     /// <summary>
-    /// プレイヤーの方向に向くための回転"Character_rot"を設定
+    /// 向くべき方向を決定(targetがいない場合は無効)
     /// </summary>
     private void SetFocusAngle()
     {
-        FocusTarget();
-        Vector3 v3 = new Vector3(Focus.x, 0, Focus.z).normalized;
-        Character_rot = Quaternion.LookRotation(v3, _transform.up);
+        if (target_transform != null)
+        {
+            Focus = target_transform.position - my_transform.position;
+            Vector3 v3 = new Vector3(Focus.x, 0, Focus.z).normalized;
+            My_rot = Quaternion.LookRotation(v3, my_transform.up);
+        }
     }
 
     /// <summary>
-    /// プレイヤーを知覚しているときの行動
+    /// 知覚中の "Action_time = 0" 時の行動
     /// </summary>
     protected virtual void ChangeFoundRooteen()
     {
+        // スキルのチャージ中
         if (isCharge)
         {
-            Action?.Invoke();
+            SetFocusAngle(); // 注目
+            Action?.Invoke(); // スキルの発動
         }
-        else if (Focus.magnitude <= atk_distance)
+
+        // スキル未発動、射程内
+        else if ((target_transform.position - my_transform.position).magnitude <= atk_distance)
         {
-            Velocity = Vector3.zero;
-            UseSkill(active_skill, SkillType.battle);
+            nav_mesh_agent.isStopped = true; // 追跡の停止
+            SetFocusAngle(); // 注目
+            UseSkill(active_skill, SkillType.battle); // スキルの発動
         }
+
+        // スキル未発動、射程外
         else
         {
-            Velocity = _transform.forward * status.Speed; // 追跡
+            nav_mesh_agent.isStopped = false; // 追跡
+            nav_mesh_agent.SetDestination(target_transform.position);
         }
     }
 
     /// <summary>
-    /// プレイヤーを発見していないときの行動
+    /// 未発見の "Action_time = 0" 時の行動
     /// </summary>
     protected virtual void ChangeRooteen()
     {
+        // スキルのチャージ中
         if (isCharge)
         {
-            Action?.Invoke();
+            Action?.Invoke(); // スキルの発動
         }
+
+        // スキル未発動
         else
         {
             if (Random.Range(1, 101) <= move_judge) // 非戦闘時move_skillの使用
@@ -140,29 +170,6 @@ class Enemy : Character
         }
     }
 
-    /// <summary>
-    /// プレイヤーを見失う処理("Character_rot"もリセットされる)
-    /// </summary>
-    protected override void LoseSightEnemy()
-    {
-        Action_cancel?.Invoke();
-        target = null;
-        Target_transform = null;
-        isFound = false;
-        turn_speed /= 4;
-        Character_rot = _transform.rotation;
-        Search();
-        Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
-    }
-
-    /// <summary>
-    /// プレイヤーを見失ったとき専用のメソッドで、一定時間プレイヤーを探す動きを実装
-    /// </summary>
-    protected virtual void Search()
-    {
-        Velocity = Vector3.zero;
-        Action_time = 2.0f;
-    }
 
     // *** スキルに関わるメソッド ***
     /// <summary>
@@ -265,19 +272,9 @@ class Enemy : Character
         list[n].Skill.SetSkill(gameObject);
     }
 
-    // *** 戦闘関係メソッド ***
-    public override void Beat(int exp)
-    {
-        LevelUp(1); // 敵が敵を倒すとレベルが1上がります。
-    }
-
-    protected override void DeathCharacter()
-    {
-        // 死亡アニメーション
-    }
 
 
-    // *** Update以外で知覚判定を切り替えるメソッド ***
+
     /// <summary>
     /// 敵の身体がプレイヤーとぶつかったときに知覚
     /// </summary>
@@ -285,23 +282,59 @@ class Enemy : Character
     {
         if (other.gameObject.CompareTag("Player_Body") && !isFound)
         {
-            FoundEnemy(other.gameObject);
+            Found(other.gameObject);
         }
     }
 
-
-    /// <summary>
-    /// 視覚・聴覚・魔法感知が発生した場合に呼び出されます。
-    /// </summary>
     /// <param name="target"></param>
-    public override void FoundEnemy(GameObject player)
+    public void Found(GameObject player)
     {
-        target = player.GetComponent<Character>();
-        Target_transform = player.GetComponent<Transform>();
+        target_method = player.GetComponent<Character>();
+        target_transform = player.GetComponent<Transform>();
         turn_speed *= 4;
         isFound = true;
-        Action_time = 0; // 即座に見つけたときの行動ルーチンに移る
         tracking_time = max_tracking_time;
+        Action_time = 0; // 即座に見つけたときの行動ルーチンに移る
+
+        nav_mesh_agent.speed = status.Speed;
+        nav_mesh_agent.angularSpeed = turn_speed;
+        nav_mesh_agent.stoppingDistance = atk_distance;
+        nav_mesh_agent.isStopped = false;
+
         Debug.Log(gameObject.name + "がプレイヤーを発見しました！！");
+    }
+
+    private void LoseSight()
+    {
+        Action_cancel?.Invoke();
+        target_method = null;
+        target_transform = null;
+        turn_speed /= 4;
+        isFound = false;
+        tracking_time = 0;
+        My_rot = my_transform.rotation;
+        Search();
+        Debug.Log(gameObject.name + "がプレイヤーを見失いました。");
+    }
+
+    /// <summary>
+    /// プレイヤーを見失ったとき専用のメソッド
+    /// </summary>
+    protected virtual void Search()
+    {
+        My_vel = Vector3.zero;
+        Action_time = 2.0f;
+    }
+
+    public override void Beat(int exp)
+    {
+        LevelUp(); // 敵が敵を倒すとレベルが1上がります。
+    }
+
+    protected override void DeathCharacter()
+    {
+        // 死亡アニメーション
+        Player.playerInstance.Beat(status.Exp);
+        Destroy(gameObject);
     }
 }

@@ -1356,11 +1356,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 101ed1673bd5acf49ab24835eea0162f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _transform: {fileID: 5807474449562257158}
-  _rigidbody: {fileID: 6081507866512664449}
-  _animator: {fileID: 5807474449562257159}
-  sound: {fileID: 0}
-  magic: {fileID: 0}
+  my_transform: {fileID: 5807474449562257158}
+  my_rigidbody: {fileID: 6081507866512664449}
+  my_animator: {fileID: 5807474449562257159}
   status:
     basic: {fileID: 11400000, guid: 2c2e7a4a8d126b14a90a4b1ef58e5db8, type: 2}
     growMaxHp: 5
@@ -1376,8 +1374,17 @@ MonoBehaviour:
     def: 0
     speed: 0
     exp: 0
-  active_skill: []
-  move_skill: []
+  active_skill:
+  - skill: {fileID: -2646721608111401639, guid: 0152fd5c1c5a33b4da606bfb405d21c6, type: 3}
+    key: Attack
+    isGetAxis: 0
+  move_skill:
+  - skill: {fileID: 1109702625111171519, guid: 8e1d8e1fb7c2f5544848ff404be61ee5, type: 3}
+    key: Jump
+    isGetAxis: 1
+  - skill: {fileID: 8159273810749472275, guid: f32cb1894dbbfcd4aa050aa4339042c4, type: 3}
+    key: Dash
+    isGetAxis: 0
   passive_skill: []
 --- !u!95 &5807474449562257159
 Animator:

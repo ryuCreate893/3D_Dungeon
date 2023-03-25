@@ -6,7 +6,7 @@ abstract class SamplePassive : PassiveSkill
 {
     public override void SkillContent()
     {
-        user_status.AddAtk += (int)(user_status.FloatAtk * 1.5f);
+        user_status.AddAtk += 100;
         user_status.Atk += user_status.AddAtk;
     }
 

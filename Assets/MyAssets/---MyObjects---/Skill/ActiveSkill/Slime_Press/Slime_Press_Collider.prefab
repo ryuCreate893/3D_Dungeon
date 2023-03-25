@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &9026567671152700480
+--- !u!1 &4987543689132358832
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,46 +8,53 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3769784522108484529}
-  - component: {fileID: 1109702625111171519}
+  - component: {fileID: 697015814277241617}
+  - component: {fileID: 5989670047686733763}
+  - component: {fileID: 1264422403886529481}
   m_Layer: 0
-  m_Name: Jump
+  m_Name: Slime_Press_Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3769784522108484529
+--- !u!4 &697015814277241617
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026567671152700480}
+  m_GameObject: {fileID: 4987543689132358832}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.9681273, y: -0.497933, z: -11.57042}
+  m_LocalPosition: {x: 26.46, y: 0, z: 31.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1109702625111171519
+--- !u!114 &5989670047686733763
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026567671152700480}
+  m_GameObject: {fileID: 4987543689132358832}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d483910137f92d04089c2507c2b13be3, type: 3}
+  m_Script: {fileID: 11500000, guid: 60e9846e2c9e46e4ba5d348eb6c6a5be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  information: 
-  use_sp: 0
-  freeze_time: 0
-  charge_time: 0
-  range: 0
-  damaged_cancel: 0
-  height: 5
+--- !u!135 &1264422403886529481
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4987543689132358832}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.5
+  m_Center: {x: 0, y: 0, z: 0}
